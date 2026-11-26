@@ -4,6 +4,7 @@ import os
 import re
 import signal
 import subprocess
+import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -104,7 +105,7 @@ def _capture(
 
 def _stop(process: subprocess.Popen[bytes]) -> None:
     try:
-        if os.name == "posix":
+        if sys.platform != "win32" and os.name == "posix":
             os.killpg(process.pid, signal.SIGKILL)
         elif process.poll() is None:
             process.kill()

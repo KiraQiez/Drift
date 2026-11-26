@@ -13,12 +13,14 @@ from drift.exceptions import UnsafePathError
 
 _INVALID_CHARACTER = re.compile(r'[<>:"\\|?*\x00-\x1f\x7f\ud800-\udfff]')
 _RESERVED_NAME = re.compile(r"(?:CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|(?:COM|LPT)[0-9¹²³])")
+_NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
+_DIRECTORY = getattr(os, "O_DIRECTORY", 0)
+_NONBLOCK = getattr(os, "O_NONBLOCK", 0)
 _DESCRIPTOR_READS = (
     os.open in os.supports_dir_fd
     and os.stat in os.supports_dir_fd
     and os.stat in os.supports_follow_symlinks
-    and hasattr(os, "O_NOFOLLOW")
-    and hasattr(os, "O_DIRECTORY")
+    and bool(_NOFOLLOW and _DIRECTORY and _NONBLOCK)
 )
 
 
@@ -65,7 +67,7 @@ def project_directory(
         yield path, None
         return
 
-    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    directory_flags = os.O_RDONLY | _DIRECTORY | _NOFOLLOW
     with ExitStack() as directories:
         try:
             directory_fd = os.open(root, directory_flags)
@@ -93,7 +95,7 @@ def _open_relative(root: Path, parts: tuple[str, ...]) -> Iterator[BinaryIO]:
             )
             descriptor = os.open(
                 name,
-                os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                os.O_RDONLY | _NOFOLLOW | _NONBLOCK,
                 dir_fd=directory_fd,
             )
     except OSError as error:

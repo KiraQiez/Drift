@@ -22,6 +22,7 @@ def test_root_help(
     assert "--help" in result.stdout
     assert "--version" in result.stdout
     assert "--project" in result.stdout
+    assert "\x1b" not in result.stdout
     assert result.stderr == ""
     assert not list(tmp_path.iterdir())
 
@@ -43,3 +44,4 @@ def test_unknown_option_uses_stderr() -> None:
     assert result.exit_code == 2
     assert result.stdout == ""
     assert "--unknown" in result.stderr
+    assert "\x1b" not in result.stderr

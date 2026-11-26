@@ -15,8 +15,8 @@ from drift.project import initialize, initialized_project
 from drift.snapshots import capture_snapshot, latest_snapshot, list_history, summary
 from drift.storage import resolve_snapshot
 
-app = typer.Typer(name="drift", add_completion=False)
-baseline = typer.Typer(name="baseline", add_completion=False)
+app = typer.Typer(name="drift", add_completion=False, rich_markup_mode=None)
+baseline = typer.Typer(name="baseline", add_completion=False, rich_markup_mode=None)
 app.add_typer(baseline)
 JsonOption = Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")]
 

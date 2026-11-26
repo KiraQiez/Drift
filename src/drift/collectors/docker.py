@@ -95,8 +95,11 @@ def _socket_issue(host: str, context: CollectorContext) -> ProbeIssue | None:
     remaining = context.remaining()
     if not remaining:
         return ProbeIssue("failed", "timeout")
+    family: int | None = getattr(socket, "AF_UNIX", None)
+    if family is None:
+        return ProbeIssue("unsupported", "unsupported_platform")
     try:
-        with socket.socket(socket.AF_UNIX) as client:
+        with socket.socket(family) as client:
             client.settimeout(min(2, remaining))
             client.connect(host.removeprefix("unix://"))
     except (FileNotFoundError, ConnectionRefusedError):
