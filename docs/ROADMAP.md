@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The first public release, **v0.1.0**, completes the implementation checklist. A task is eligible once its listed dependencies are complete.
+The first public release was **v0.1.0**. The comparison UI and baseline shortcut are verified on `staging`. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -13,6 +13,7 @@ The first public release, **v0.1.0**, completes the implementation checklist. A 
 | [5. Baseline and verification](#phase-5-baseline-and-verification) | T-014–T-015 | Atomic baseline selection and automation-friendly verification. Exit when all baseline outcomes and exit codes are exercised through the CLI. |
 | [6. Production readiness](#phase-6-production-readiness) | T-016–T-018 | End-to-end tests, cross-platform CI, and security and latency review. Exit when required gates pass and platform limitations are documented. |
 | [7. Packaging and public release](#phase-7-packaging-and-public-release) | T-019–T-023 | Final identities, verified artifacts and install paths, trusted release workflows, and a Homebrew tap. Exit when an approved version can be installed from all supported channels. |
+| [8. CLI usability](#phase-8-cli-usability) | T-024–T-025 | Readable comparison reports and a two-command baseline workflow. |
 
 Public release depends on a distinct distribution name and maintainer-controlled GitHub and tap identities. See [release identity](RELEASE.md#release-identity).
 
@@ -178,3 +179,18 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** An approved tag, GitHub Release, PyPI package, and tap formula.
   - **Complete when** The published artifacts match recorded hashes and clean installs through uv tool, pipx, and Homebrew pass.
   - **Verified** The wheel and source distribution downloaded from PyPI and GitHub matched the tagged build's SHA-256 checksums. Fresh uv tool and pipx installs passed the CLI contract. The public tap passed `brew test` and the CLI contract on Apple Silicon and Intel macOS. [Release run](https://github.com/KiraQiez/Drift/actions/runs/45798929695) · [Public tap checks](https://github.com/KiraQiez/homebrew-tap/actions/runs/45800138887)
+
+### Phase 8. CLI usability
+
+- [x] **T-024 · Improve comparison reports** · P1
+  - **Dependencies** `T-013`, `T-015`
+  - **Requirements** `FR-009`, `FR-011`
+  - **Deliverable** Shared terminal and plain-text reports with an optional detailed view.
+  - **Complete when** Both commands show confirmed changes and coverage gaps, and retain their JSON contract and exit codes.
+  - **Verified** Rich and plain-text layout tests, JSON checks, and the full staging installer matrix passed. [Staging run](https://github.com/KiraQiez/Drift/actions/runs/45844167393)
+- [x] **T-025 · Save a baseline in one command** · P1
+  - **Dependencies** `T-014`, `T-015`, `T-024`
+  - **Requirements** `FR-001`, `FR-007`, `FR-010`
+  - **Deliverable** `drift snapshot --baseline` and a two-command quick start.
+  - **Complete when** The shortcut finds or initializes the project, saves a snapshot, sets the baseline, and preserves existing history.
+  - **Verified** Fresh setup, nested and explicit project selection, baseline replacement, and failed pointer replacement passed. The installed CLI workflow passed on all supported runners. [Staging run](https://github.com/KiraQiez/Drift/actions/runs/45845460597)
