@@ -1,0 +1,61 @@
+# Development guide
+
+## Commands
+
+The project foundation task will add these commands. Use the locked development environment for local checks and CI. Track the uv lockfile in Git and update it when dependencies change.
+
+| Command | Purpose | Planned invocation |
+| --- | --- | --- |
+| `just setup` | Sync the development environment | `uv sync --locked` |
+| `just test` | Run Pytest | `uv run --locked pytest` |
+| `just format` | Apply Ruff formatting | `uv run --locked ruff format .` |
+| `just lint` | Check lint and formatting | `uv run --locked ruff check .` and `uv run --locked ruff format --check .` |
+| `just typecheck` | Check application types | `uv run --locked mypy src` |
+| `just check` | Run the quality gates | Run the lint, typecheck, and test recipes |
+| `just build` | Build the wheel and source distribution | `uv build` |
+
+## Engineering standards
+
+- Use Python, PEP 8, and the repository's Ruff configuration. Give public functions type annotations and keep functions focused with descriptive names.
+- Prefer composition, existing project logic, and the standard library. Keep tooling dependencies separate from runtime dependencies. Explain consequential dependency changes in the [architecture decisions](ARCHITECTURE.md#design-decisions).
+- Use `pathlib` for paths, timezone-aware UTC timestamps, and stable ordering for public output. Use typed errors, handle unexpected errors at defined boundaries, and keep terminal formatting outside core logic.
+- Keep abstractions focused on behavior already needed or a boundary that needs independent testing. Dependency injection frameworks, speculative plugin systems, generic repository layers, and service infrastructure fall outside the design.
+- Implement collectors and storage according to the [security contract](SECURITY.md), including bounded subprocesses, project-local writes, and value-free environment observations.
+- Keep updates focused. When behavior changes, update its owning document and the related tests. Use the [roadmap](ROADMAP.md) for task status and verification evidence.
+
+## Test structure and fixtures
+
+Use Pytest to exercise public behavior and core invariants. Default runs use temporary projects and synthetic inputs, independent of production credentials, external APIs, a running Docker daemon, and changes to the developer's tools or environment.
+
+| Location | What it covers |
+| --- | --- |
+| `tests/unit/` | Configuration and schema validation, probe parsers and normalization, collector deadlines, ID resolution and ordering, and pure comparison logic. |
+| `tests/integration/` | CLI parsing, output and exit codes, file permissions, storage recovery, concurrent writes, and fixture workflows across commands. |
+| Release jobs | Wheel and sdist contents, installs from each artifact or distribution channel, and smoke runs of the installed CLI. |
+
+Build temporary projects with `tmp_path`. Pass controlled environments to tests and replace external command execution at the bounded runner seam. Use synthetic stdout, stderr, return codes, and timeouts. For tests of the runner itself, use short-lived Python children or fixed local fixtures that simulate the expected behavior. Use a fixed clock and IDs for ordering tests, and real separate processes for storage concurrency. Keep platform-specific cases explicit so missing coverage is visible.
+
+## Acceptance matrix
+
+| Area | Required scenarios |
+| --- | --- |
+| Initialization and config | Fresh and repeated initialization, preservation of pre-existing bytes, interrupted setup and retry, upward discovery, explicit project selection, nested invalid configuration, unknown settings, unsafe paths, and invalid TOML or schema versions. |
+| Tool probes | Missing runtimes, malformed version output, unsupported launchers, Docker missing or present with an unavailable daemon, local endpoint selection, configured service filtering, timeout, output overflow, and a failure isolated to one collector. |
+| Files and environment | Each manifest path, content changes, absent files, a file changing during hashing, environment values changing with names unchanged, allowlist filtering, missing environment files, multiline quoted values, invalid syntax, and Windows key case. |
+| Git context | Clean and dirty trees, detached and unborn HEAD, absent Git, unsupported checkout layout, filters and hooks never invoked, and Git-only differences excluded from drift. |
+| Snapshot data and storage | Round-trip serialization, UTC formatting, strict schemas, wrong or duplicate keys, unsupported versions, snapshot ID and filename mismatch, prefix collisions, parse failure, partial snapshots, corrupt metadata, and corruption in mixed histories. |
+| Concurrency and interruption | Parallel initialization, simultaneous captures, colliding snapshot IDs, interruption before publication, abandoned staging files, races between readers and publishers, and concurrent baseline updates. |
+| Comparison and verification | Added, removed, and modified observations, stable ordering, known absence versus failed probes, changed coverage scope, partial coverage with and without drift, no comparable observations, missing baseline, invalid target, and no writes during comparison. |
+| CLI | Every leaf command, help and version without a project, invalid usage, non-TTY output, stable JSON keys and streams, and exit codes `0` through `4`. |
+| Security | Sentinel secrets in input values, command output, and errors. Unsafe binaries, traversal, symlinks, Windows junctions, special files, remote Docker settings, terminal escapes, and private POSIX permissions. |
+| Packaging | Install both wheel and sdist in fresh isolated environments. Verify the console script, version, help, initialization, and a snapshot-to-verification flow against fixture input. |
+
+Prefer meaningful branch and failure-mode coverage over an aggregate percentage. Each required CLI outcome, comparison rule, and write consistency guarantee needs a direct assertion. A happy-path smoke test is insufficient evidence for a timeout, security boundary, or concurrent write.
+
+## Quality gates and CI
+
+Run Ruff, Mypy, and Pytest before completing an implementation task. Report which checks passed and give a reason for checks that were skipped or unavailable.
+
+Run the full gate on Linux, macOS, and Windows with CPython 3.12 and the latest stable CPython supported by the dependency set. CI calls the locked uv commands directly where a shell or Just recipe would limit portability. Explicitly track filesystem capabilities such as junction creation and POSIX permissions. Confirm support for Windows tool launchers, local Docker endpoints, and atomic filesystem operations before claiming platform compatibility.
+
+Use fixture timings and simulated stalls to assess the [responsiveness target](PRD.md#success-metrics). Test artifacts and installers through the [release process](RELEASE.md#publication-validation-and-rollback).
