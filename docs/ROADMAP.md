@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The first public release was **v0.1.0**. The comparison UI and baseline shortcut are verified on `staging`. A task is eligible once its listed dependencies are complete.
+The first public release was **v0.1.0**. The comparison UI and baseline shortcut shipped in **v0.2.0**. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -194,3 +194,5 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** `drift snapshot --baseline` and a two-command quick start.
   - **Complete when** The shortcut finds or initializes the project, saves a snapshot, sets the baseline, and preserves existing history.
   - **Verified** Fresh setup, nested and explicit project selection, baseline replacement, and failed pointer replacement passed. The installed CLI workflow passed on all supported runners. [Staging run](https://github.com/KiraQiez/Drift/actions/runs/45845460597)
+
+**Release verification.** The v0.2.0 build passed the staging and tagged workflows. Public PyPI and GitHub downloads matched the tagged checksums. Fresh uv tool, pipx, and Homebrew installs passed the CLI smoke tests. The Intel Homebrew job reported zero annotations in staging, the tagged run, and public tap verification. [Staging run](https://github.com/KiraQiez/Drift/actions/runs/45849495685) · [Tagged release](https://github.com/KiraQiez/Drift/actions/runs/45850578508) · [Public tap checks](https://github.com/KiraQiez/homebrew-tap/actions/runs/45855324976)
