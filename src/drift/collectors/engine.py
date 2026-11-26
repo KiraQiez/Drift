@@ -16,6 +16,7 @@ from drift.collectors.base import (
     Observation,
     ProbeIssue,
     ProbeResult,
+    known_absence,
 )
 from drift.config import ProjectConfig
 
@@ -34,11 +35,7 @@ def collector_status(
         for probe in applicable
         if isinstance(probe, ProbeIssue)
         and not (
-            probe.status == "unavailable"
-            and (
-                (collector_id == "runtime" and probe.code == "executable_missing")
-                or (collector_id == "dependency" and probe.code == "not_found")
-            )
+            probe.status == "unavailable" and known_absence(collector_id, probe.code)
         )
     ]
     if gaps:

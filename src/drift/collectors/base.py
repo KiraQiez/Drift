@@ -64,6 +64,13 @@ class ProbeIssue:
 type ProbeResult = Observation | ProbeIssue
 
 
+def known_absence(collector: CollectorId, code: DiagnosticCode) -> bool:
+    return (collector, code) in {
+        ("runtime", "executable_missing"),
+        ("dependency", "not_found"),
+    }
+
+
 @dataclass(frozen=True)
 class CollectorResult:
     status: CollectorStatus
