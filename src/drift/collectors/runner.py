@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from time import monotonic, sleep
+from typing import Literal
 
 from drift.collectors.base import ProbeIssue
 
@@ -26,7 +27,20 @@ class CommandOutput:
     stderr: bytes = field(repr=False)
 
 
-def _resolve(executable: str, search: Sequence[Path]) -> Path | ProbeIssue:
+def launcher_paths() -> list[Path]:
+    """Return absolute entries in the invoking user's PATH."""
+    return [
+        path
+        for entry in os.environ.get("PATH", "").split(os.pathsep)
+        if (path := Path(entry)).is_absolute()
+    ]
+
+
+def _resolve(executable: str | Path, search: Sequence[Path]) -> Path | ProbeIssue:
+    if isinstance(executable, Path):
+        if not executable.is_absolute():
+            return ProbeIssue("failed", "invalid_input")
+        return _resolve(executable.name, (executable.parent,))
     if executable in {".", ".."} or not _LAUNCHER_NAME.fullmatch(executable):
         return ProbeIssue("failed", "invalid_input")
 
@@ -96,7 +110,12 @@ def _stop(process: subprocess.Popen[bytes]) -> None:
 
 
 def run_probe(
-    executable: str, args: Sequence[str], *, cwd: Path, deadline: float
+    executable: str | Path,
+    args: Sequence[str],
+    *,
+    cwd: Path,
+    deadline: float,
+    profile: Literal["default", "go"] = "default",
 ) -> CommandOutput | ProbeIssue:
     """Run a trusted tool name with arguments supplied by collector code."""
     if not cwd.is_absolute():
@@ -105,17 +124,15 @@ def run_probe(
     if monotonic() >= deadline:
         return ProbeIssue("failed", "timeout")
 
-    search = [
-        path
-        for entry in os.environ.get("PATH", "").split(os.pathsep)
-        if (path := Path(entry)).is_absolute()
-    ]
+    search = launcher_paths()
     environment = (
         {key: os.environ[key] for key in ("SYSTEMROOT", "WINDIR") if key in os.environ}
         if os.name == "nt"
         else {}
     )
     environment.update(PATH=os.pathsep.join(map(str, search)), LC_ALL="C", LANG="C")
+    if profile == "go":
+        environment.update(GOTOOLCHAIN="local", GOENV="off")
 
     try:
         if not cwd.is_dir():
