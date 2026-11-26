@@ -1,15 +1,17 @@
 """Drift's command-line entry point."""
 
+import json
 from importlib.metadata import version
 from pathlib import Path
 from typing import Annotated, cast
 
 import typer
 
-from drift.models import valid_message
+from drift.models import Snapshot, is_snapshot_reference, valid_message
 from drift.output import Report, emit, literal
 from drift.project import initialize, initialized_project
-from drift.snapshots import capture_snapshot, summary
+from drift.snapshots import capture_snapshot, list_history, summary
+from drift.storage import resolve_snapshot
 
 app = typer.Typer(name="drift", add_completion=False)
 JsonOption = Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")]
@@ -78,3 +80,70 @@ def snapshot(
         )
 
     emit("snapshot", as_json, run)
+
+
+def _validate_reference(reference: str) -> None:
+    if not is_snapshot_reference(reference):
+        raise typer.BadParameter(
+            "Use a canonical snapshot ID or a lowercase hex prefix of at least six characters.",
+            param_hint="SNAPSHOT",
+        )
+
+
+def _snapshot_line(record: Snapshot) -> str:
+    note = f" · {literal(record.message)}" if record.message is not None else ""
+    return f"{record.id} · {record.created_at}{note}"
+
+
+@app.command()
+def history(ctx: typer.Context, as_json: JsonOption = False) -> None:
+    """List saved snapshots from oldest to newest."""
+
+    def run() -> Report:
+        root, _ = initialized_project(cast(Path | None, ctx.obj))
+        entries = list_history(root)
+        lines = [_snapshot_line(record) for record in entries.snapshots]
+        lines.extend(
+            f"Damaged snapshot {item['id']} ({item['code']})"
+            for item in entries.damaged
+        )
+        return Report(
+            {
+                "snapshots": [summary(record) for record in entries.snapshots],
+                "damaged": entries.damaged,
+            },
+            "\n".join(lines) or "No snapshots yet.",
+            4 if entries.damaged else 0,
+        )
+
+    emit("history", as_json, run)
+
+
+@app.command()
+def show(ctx: typer.Context, snapshot: str, as_json: JsonOption = False) -> None:
+    """Show a snapshot and its collector observations."""
+    _validate_reference(snapshot)
+
+    def run() -> Report:
+        root, _ = initialized_project(cast(Path | None, ctx.obj))
+        record = resolve_snapshot(root, snapshot)
+        lines = [
+            f"Snapshot {_snapshot_line(record)}",
+            f"Schema version {record.schema_version}",
+        ]
+        lines.extend(
+            f"Scope {name} = {json.dumps(value)}"
+            for name, value in record.scope.model_dump().items()
+        )
+        for collector, result in record.collectors.items():
+            lines.append(f"{collector} ({result.status})")
+            for probe, observation in result.probes.items():
+                detail = observation.model_dump()
+                status = detail.pop("status")
+                description = (
+                    json.dumps(detail["value"]) if "value" in detail else detail["code"]
+                )
+                lines.append(f"  {literal(probe)} ({status}) {description}")
+        return Report({"snapshot": record.model_dump()}, "\n".join(lines))
+
+    emit("show", as_json, run)

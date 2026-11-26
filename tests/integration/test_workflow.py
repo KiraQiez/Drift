@@ -91,3 +91,45 @@ def test_parallel_snapshot_invocations_publish_separate_records(tmp_path):
         }
         assert first.returncode == second.returncode == 0
     assert len(ids) == 2 and ids == set(storage.snapshot_ids(root))
+
+
+def project_files(root):
+    return {
+        str(file.relative_to(root)): (file.read_bytes(), file.stat().st_mtime_ns)
+        for file in root.rglob("*")
+        if file.is_file()
+    }
+
+
+def test_history_ordering_and_partial_damage(tmp_path):
+    root = prepare(tmp_path)
+    assert payload(root, "history") == {"snapshots": [], "damaged": []}
+    first, second, third = (take(root) for _ in range(3))
+    first_path = root / ".drift/snapshots" / f"{first['id']}.json"
+    second_path = root / ".drift/snapshots" / f"{second['id']}.json"
+    record = json.loads(first_path.read_bytes())
+    record["created_at"] = "2026-11-26T03:40:00.1000001Z"
+    first_path.write_text(json.dumps(record))
+    record = json.loads(second_path.read_bytes())
+    record["created_at"] = "2026-11-26T03:40:00.1Z"
+    second_path.write_text(json.dumps(record))
+    (root / ".drift/snapshots" / f"{third['id']}.json").write_text("damaged sentinel")
+    (root / ".drift/snapshots/.drift-stage-old").touch()
+    before = project_files(root)
+    result = payload(root, "history", code=4)
+    assert [item["id"] for item in result["snapshots"]] == [second["id"], first["id"]]
+    assert result["damaged"] == [{"id": third["id"], "code": "invalid_snapshot"}]
+    assert payload(root, "show", first["id"][:8])["snapshot"]["id"] == first["id"]
+    assert payload(root, "show", third["id"], code=1)["code"] == "invalid_snapshot"
+    assert project_files(root) == before
+
+
+def test_show_validates_reference_and_renders_literal_data(tmp_path):
+    root = prepare(tmp_path)
+    record = take(root, "-m", "A [literal] note")
+    result = invoke(root, "show", record["id"])
+    assert "A [literal] note" in result.stdout
+    assert "dependency" in result.stdout
+    malformed = invoke(root, "show", "../secret", "--json", code=2)
+    assert not malformed.stdout
+    assert "../secret" not in malformed.stderr

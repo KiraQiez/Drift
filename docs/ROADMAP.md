@@ -88,11 +88,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** Capture orchestration and the `snapshot` command.
   - **Complete when** A normal or partial capture writes exactly one immutable record and parallel invocations produce separate valid IDs.
   - **Verified** Ruff, Mypy, and 125 tests passed on macOS with Python 3.12. Integration tests verified partial results, literal messages, UUID collision retry, and separate records from parallel invocations.
-- [ ] **T-011 · List and inspect history** · P0
+- [x] **T-011 · List and inspect history** · P0
   - **Dependencies** `T-008`, `T-010`
   - **Requirements** `FR-008`, `FR-011`, `NFR-004`, `NFR-007`
   - **Deliverable** `history` and `show`.
   - **Complete when** History ordering is stable, exact and unique-prefix lookups work, and mixed histories retain readable results with the specified exit code.
+  - **Verified** Ruff, Mypy, and 127 tests passed on macOS with Python 3.12. CLI tests verified chronological order, exact and prefix lookup, partial history, literal output, and read-only inspection.
 
 ### Phase 4. Comparison engine
 
