@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-Packaging and installer checks are verified. The next implementation task is **T-021**. A task is eligible once its listed dependencies are complete.
+The staging release rehearsal is verified. The next implementation task is **T-022**. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -160,11 +160,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** The build and installer smoke workflow.
   - **Complete when** Wheel and sdist metadata, contents, hashes, and clean installs pass on the supported platforms.
   - **Verified** Verified both archives and their hashes, rejected a tampered wheel, and passed both installer smoke tests in all six jobs. [Packaging run](https://github.com/KiraQiez/Drift/actions/runs/45790293876)
-- [ ] **T-021 · Prepare PyPI and GitHub release automation** · P1
+- [x] **T-021 · Prepare PyPI and GitHub release automation** · P1
   - **Dependencies** `T-019`, `T-020`
   - **Requirements** `FR-012`, `NFR-006`
   - **Deliverable** Tag validation, changelog handling, the scoped Trusted Publisher workflow, and GitHub Release artifact delivery.
   - **Complete when** The approved staging path exercises build, validation, and publication controls.
+  - **Verified** Staging passed quality, artifact validation, and the installer matrix, extracted the changelog notes, and skipped both publication jobs. Tag and notes rejection tests passed. [Release rehearsal](https://github.com/KiraQiez/Drift/actions/runs/45790709562)
 - [ ] **T-022 · Prepare the Homebrew tap** · P1
   - **Dependencies** `T-019`, `T-020`
   - **Requirements** `FR-012`, `NFR-005`
