@@ -51,7 +51,7 @@ Prefer meaningful branch and failure-mode coverage over an aggregate percentage.
 
 Run Ruff, Mypy, and Pytest before completing an implementation task. Report which checks passed and give a reason for checks that were skipped or unavailable.
 
-The [quality workflow](../.github/workflows/quality.yml) runs on Linux, macOS, and Windows with CPython 3.12 and 3.15. It runs for pushes and pull requests targeting `main` or `staging`, and for version tags. Each job uses the locked development dependencies, runs Ruff, Mypy, and pytest, and builds the package. Pytest reports skipped cases by capability, such as POSIX permissions or Windows-only junctions.
+The [quality workflow](../.github/workflows/quality.yml) runs on Linux, macOS, and Windows with CPython 3.12 and 3.15. It runs for pushes to `main` and pull requests targeting `main` or `staging`. The release workflow reuses it for staging pushes and version tags. Each job uses the locked development dependencies, runs Ruff, Mypy, and pytest, and measures a fixture capture. Pytest reports skipped cases by capability, such as POSIX permissions or Windows-only junctions.
 
 Use fixture timings and simulated stalls to assess the [responsiveness target](PRD.md#success-metrics). Test artifacts and installers through the [release process](RELEASE.md#publication-validation-and-rollback).
 

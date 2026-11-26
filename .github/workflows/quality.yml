@@ -2,8 +2,8 @@ name: Quality
 
 on:
   push:
-    branches: [main, staging]
-    tags: ["v*"]
+    branches: [main]
+  workflow_call:
   pull_request:
     branches: [main, staging]
 
@@ -42,5 +42,3 @@ jobs:
         run: uv run --locked pytest -ra
       - name: Measure fixture capture
         run: uv run --locked python scripts/measure_capture.py
-      - name: Build package
-        run: uv build
