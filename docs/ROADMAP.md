@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The package foundation is complete. The next implementation task is **T-002**, pending approval. A task is eligible once its listed dependencies are complete.
+The project foundation is complete. The next implementation task is **T-003**, pending approval. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -28,11 +28,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** Local Git initialization, Python `src` package, provisional metadata and console entry point, lockfile, license, ignore rules, Just recipes, and initial tests.
   - **Complete when** A locked setup runs help, version, quality checks, and a local build.
   - **Verified** On macOS arm64, `just setup`, `just check`, and `just build` passed on Python 3.12.16. All four CLI tests also passed on Python 3.14.8. Fresh installs from the wheel and sdist both passed help and version checks from an empty directory.
-- [ ] **T-002 · Load configuration and constrain project paths** · P0
+- [x] **T-002 · Load configuration and constrain project paths** · P0
   - **Dependencies** `T-001`
   - **Requirements** `FR-001`, `FR-004`, `FR-011`, `NFR-003`
   - **Deliverable** Root resolution, strict TOML loading, and shared safe-path access.
   - **Complete when** Fixtures cover defaults, overrides, invalid configs, traversal, links, and ambiguous paths.
+  - **Verified** On macOS arm64, `just check`, `just build`, and all 55 tests passed with Python 3.12.16. All 55 tests also passed with Python 3.14.8. Tests exercised descriptor-relative and fallback reads, including symlinks, FIFOs, and a symlink substitution during descriptor-based opening. Native Windows junction coverage remains part of the platform checks.
 
 ### Phase 2. Collector engine
 

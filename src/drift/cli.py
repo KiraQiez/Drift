@@ -1,6 +1,7 @@
 """Drift's command-line entry point."""
 
 from importlib.metadata import version
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -11,6 +12,9 @@ app = typer.Typer(name="drift", add_completion=False)
 @app.callback(invoke_without_command=True)
 def _root(
     ctx: typer.Context,
+    project: Annotated[
+        Path | None, typer.Option("--project", help="Select the project directory.")
+    ] = None,
     show_version: Annotated[
         bool, typer.Option("--version", help="Show the Drift version and exit.")
     ] = False,
@@ -20,5 +24,6 @@ def _root(
         typer.echo(f"drift {version('drift-dev-env')}")
         raise typer.Exit()
 
+    ctx.obj = project
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())

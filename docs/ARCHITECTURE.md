@@ -76,12 +76,12 @@ Translate expected command, parse, and file failures to per-probe statuses or ty
 
 ## Repository layout
 
-The foundation provides `src/drift/cli.py`, CLI integration tests, and the root metadata, uv lockfile, Justfile, Python version file, and license. The layout expands as each feature is implemented.
+The foundation provides the CLI, project discovery and configuration, shared safe file reads, and their tests. It also provides the root metadata, uv lockfile, Justfile, Python version file, and license.
 
-- `src/drift/` contains `cli.py`, `output.py`, `models.py`, `config.py`, `storage.py`, and `exceptions.py` as their tasks require them.
+- `src/drift/` contains the CLI, configuration, path access, and errors. Presentation, model, and storage modules arrive with the tasks that use them.
 - `src/drift/collectors/` contains the shared runner and contract, plus the system, runtime, Docker, environment, dependency, and Git modules.
 - `src/drift/core/` contains snapshot and history orchestration, comparison, and baseline management. Initialization can use the configuration and storage modules directly.
-- `tests/unit/` and `.github/workflows/` arrive with the appropriate tasks.
+- `tests/unit/` covers configuration and file access. `.github/workflows/` arrives with the CI task.
 
 ## Technology stack
 

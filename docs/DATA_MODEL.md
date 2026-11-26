@@ -47,7 +47,9 @@ The example shows opt-in settings. Generated defaults enable all six collectors.
 | `environment.active_allowlist` | Optional array of unique exact names. Omission captures all active names. An empty array selects zero active names. |
 | `docker.compose_project` | Optional literal Compose name matching `^[a-z0-9][a-z0-9_-]*$`. Service collection is enabled only when set. |
 
-Reject unknown settings, wrong types, and unsafe paths. Paths use slash-separated relative components. Reject empty, dot, parent, absolute, drive-qualified, device, and ambiguous components. Follow the [filesystem rules](SECURITY.md#filesystem-safety) and reject duplicate inputs after platform normalization. Environment directory scanning, globs, shell commands, and interpolation are outside the configuration contract.
+Reject unknown settings, wrong types, and unsafe paths. Paths use slash-separated relative components. Reject empty, dot, parent, absolute, drive-qualified, device, and ambiguous components. Check duplicate paths using platform path case rules. Check allowlist names for duplicates after uppercasing on Windows. Names must be nonempty and free of NUL and `=`.
+
+Configuration loading checks the syntax of environment file paths. Existence, file type, and the absence of symlinks or junctions are checked when the collector opens each file, so a missing configured file can be reported in its own result. Follow the [filesystem rules](SECURITY.md#filesystem-safety). Environment directory scanning, globs, shell commands, and interpolation are outside the configuration contract.
 
 ## Normalized observations
 
