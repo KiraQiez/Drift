@@ -4,9 +4,9 @@
 
 Drift (Development Environment Version Control) is a developer CLI in early development. Git tracks changes to your source code. Drift is designed to help you find changes in the environment around it, such as a new runtime version, a changed lockfile, or a Docker service that stopped.
 
-The planned MVP captures local snapshots, shows what changed, and verifies the current environment against a known-working baseline. It will track environment variable names and file declarations while leaving values out of snapshots and reports.
+Drift captures local snapshots, shows what changed, and verifies the current environment against a known-working baseline. It tracks environment variable names and file declarations while leaving values out of snapshots and reports.
 
-## Planned workflow
+## Workflow
 
 ```sh
 drift init
@@ -17,7 +17,7 @@ drift diff
 drift verify --json
 ```
 
-Use the snapshot ID or a unique prefix from your own history when setting a baseline. See the [CLI specification](docs/CLI_SPEC.md) for the planned command behavior.
+Use the snapshot ID or a unique prefix from your own history when setting a baseline. A verification exits with code `0` for a match, `3` for confirmed drift, and `4` for incomplete coverage. See the [CLI specification](docs/CLI_SPEC.md) for the full contract.
 
 ## Installation plans
 
@@ -31,7 +31,7 @@ pipx install PACKAGE_NAME
 
 ## Development
 
-The current CLI provides root help and version output. Run these commands from a checkout with uv and Just available.
+From a checkout with uv and Just available, run the commands below. Use `uv run --locked drift` in place of `drift` when working directly from the checkout.
 
 ```sh
 just setup

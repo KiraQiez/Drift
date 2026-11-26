@@ -51,3 +51,11 @@ class HistoryEmptyError(DriftError):
 
 class HistoryIncompleteError(DriftError):
     code = "history_incomplete"
+
+
+class BaselineMissingError(DriftError):
+    code = "baseline_missing"
+
+
+class InvalidBaselineError(DriftError):
+    code = "invalid_baseline"

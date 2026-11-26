@@ -2,9 +2,19 @@
 
 from pathlib import Path
 
-from drift.exceptions import StorageError
-from drift.models import Metadata
-from drift.storage import publish_metadata, read_metadata, resolve_snapshot
+from drift.exceptions import (
+    BaselineMissingError,
+    DriftError,
+    InvalidBaselineError,
+    StorageError,
+)
+from drift.models import Metadata, Snapshot
+from drift.storage import (
+    publish_metadata,
+    read_metadata,
+    read_snapshot,
+    resolve_snapshot,
+)
 
 
 def baseline_metadata(root: Path) -> Metadata:
@@ -24,3 +34,15 @@ def set_baseline(root: Path, reference: str) -> str:
             root, Metadata(schema_version=1, baseline_id=snapshot.id), replace=True
         )
     return snapshot.id
+
+
+def baseline_snapshot(root: Path) -> Snapshot:
+    baseline_id = baseline_metadata(root).baseline_id
+    if baseline_id is None:
+        raise BaselineMissingError("Set a baseline with drift baseline set SNAPSHOT.")
+    try:
+        return read_snapshot(root, baseline_id)
+    except DriftError:
+        raise InvalidBaselineError(
+            "The baseline snapshot is missing or unreadable. Select a valid snapshot with drift baseline set."
+        ) from None

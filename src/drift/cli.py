@@ -7,7 +7,7 @@ from typing import Annotated, cast
 
 import typer
 
-from drift.baseline import set_baseline
+from drift.baseline import baseline_snapshot, set_baseline
 from drift.live_comparison import compare_live
 from drift.models import Snapshot, is_snapshot_reference, valid_message
 from drift.output import Report, emit, literal
@@ -197,3 +197,14 @@ def baseline_set(
         return Report({"baseline_id": snapshot_id}, f"Baseline set to {snapshot_id}")
 
     emit("baseline set", as_json, run)
+
+
+@app.command()
+def verify(ctx: typer.Context, as_json: JsonOption = False) -> None:
+    """Verify the live environment against the known-working baseline."""
+
+    def run() -> Report:
+        root, config = initialized_project(cast(Path | None, ctx.obj))
+        return compare_live(root, config, baseline_snapshot(root))
+
+    emit("verify", as_json, run)

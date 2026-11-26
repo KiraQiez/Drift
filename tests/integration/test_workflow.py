@@ -24,6 +24,13 @@ def payload(root, *args, code=0):
     assert result.stdout.count("\n") == 1
     value = json.loads(result.stdout)
     assert value["schema_version"] == 1
+    command = "baseline set" if args[0] == "baseline" else args[0]
+    assert value["command"] == command
+    assert set(value) == {
+        "schema_version",
+        "command",
+        "error" if code == 1 else "result",
+    }
     return value.get("result", value.get("error"))
 
 
@@ -215,3 +222,60 @@ def test_readers_observe_valid_baselines_during_updates(tmp_path):
             sleep(0.002)
         assert writer.wait(timeout=1) == 0
     assert storage.read_metadata(root).baseline_id == first
+
+
+def test_verify_match_then_drift_from_full_workflow(tmp_path):
+    root = prepare(tmp_path)
+    manifest = root / "requirements.txt"
+    manifest.write_text("example==1\n")
+    saved = take(root, "-m", "Known working")
+    assert payload(root, "history")["snapshots"] == [saved]
+    assert payload(root, "show", saved["id"])["snapshot"]["message"] == "Known working"
+    payload(root, "baseline", "set", saved["id"])
+    assert payload(root, "diff")["outcome"] == "match"
+    assert payload(root, "verify")["outcome"] == "match"
+    manifest.write_text("example==2\n")
+    before = project_files(root)
+    result = payload(root, "verify", code=3)
+    assert result == payload(root, "diff", saved["id"], code=3)
+    assert result["reference_id"] == saved["id"]
+    assert result["changes"][0]["probe"] == "manifest:requirements.txt"
+    assert result["changes"][0]["kind"] == "modified"
+    assert "Drift detected" in invoke(root, "verify", code=3).stdout
+    assert project_files(root) == before
+
+
+def test_verify_gaps_and_confirmed_drift_precedence(tmp_path):
+    root = prepare(tmp_path, environment=True)
+    saved = take(root)
+    payload(root, "baseline", "set", saved["id"])
+    incomplete = payload(root, "verify", code=4)
+    assert incomplete["outcome"] == "incomplete"
+    assert incomplete["gaps"] == [
+        {
+            "collector": "environment",
+            "probe": "file:missing.env",
+            "side": "both",
+            "code": "not_found",
+        }
+    ]
+    (root / "requirements.txt").write_text("example==1\n")
+    drift = payload(root, "verify", code=3)
+    assert drift["outcome"] == "drift"
+    assert drift["gaps"] == incomplete["gaps"]
+
+
+def test_verify_unset_missing_and_damaged_baselines(tmp_path):
+    root = prepare(tmp_path)
+    assert payload(root, "verify", code=1)["code"] == "baseline_missing"
+    result = invoke(root, "verify", code=1)
+    assert not result.stdout and "baseline_missing" in result.stderr
+    saved = take(root)
+    payload(root, "baseline", "set", saved["id"])
+    target = root / ".drift/snapshots" / f"{saved['id']}.json"
+    target.write_text("sensitive malformed text")
+    assert payload(root, "verify", code=1)["code"] == "invalid_baseline"
+    target.unlink()
+    assert payload(root, "verify", code=1)["code"] == "invalid_baseline"
+    (root / ".drift/metadata.json").write_text("damaged")
+    assert payload(root, "verify", code=1)["code"] == "storage_error"

@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-A task is eligible once its listed dependencies are complete.
+The CLI workflow through verification is complete. The next implementation task is **T-016**, pending approval. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -118,11 +118,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** `baseline set` with atomic metadata publication.
   - **Complete when** Valid references set the pointer, failed writes preserve readable metadata, and concurrent readers and writers observe valid pointers.
   - **Verified** Ruff, Mypy, and 136 tests passed on macOS with Python 3.12. Tests exercised partial baselines, no-op repeats, failed replacement, and concurrent pointer reads.
-- [ ] **T-015 · Verify the live environment** · P0
+- [x] **T-015 · Verify the live environment** · P0
   - **Dependencies** `T-013`, `T-014`
   - **Requirements** `FR-010`, `FR-011`, `NFR-007`
   - **Deliverable** `verify` over the shared comparison service.
   - **Complete when** Match, drift, incomplete, missing and damaged baseline, and drift with gaps produce the specified outputs and exit codes.
+  - **Verified** Ruff, Mypy, and 139 tests passed on macOS with Python 3.12 and 3.14. One Windows-only test was skipped. The wheel and sdist each passed an installed init-to-verify workflow, including a match followed by a confirmed manifest change with exit 3.
 
 ### Phase 6. Production readiness
 
