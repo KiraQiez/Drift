@@ -2,13 +2,16 @@ import json
 import os
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 
 def test_installed_console_workflow(tmp_path):
-    executable = Path(sys.executable).with_name(
-        "drift.exe" if os.name == "nt" else "drift"
-    )
+    executable = os.environ.get("DRIFT_TEST_EXECUTABLE") or Path(
+        sys.executable
+    ).with_name("drift.exe" if os.name == "nt" else "drift")
+    pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    version = tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["version"]
     project = tmp_path / "project with spaces"
     child = project / "nested"
     child.mkdir(parents=True)
@@ -37,7 +40,7 @@ def test_installed_console_workflow(tmp_path):
 
     help_text = run("--help").stdout
     assert all(name in help_text for name in ("history", "baseline", "verify"))
-    assert run("--version").stdout.startswith("drift ")
+    assert run("--version").stdout.strip() == f"drift {version}"
     assert (
         payload("history", code=1, project_options=("--project", "."))["code"]
         == "project_not_initialized"

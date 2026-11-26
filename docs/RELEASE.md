@@ -24,7 +24,22 @@ These are planned installations from the project's own tap and PyPI package. Eac
 
 ## Artifacts and versioning
 
-Build a wheel and sdist with Hatchling through `uv build`. Package the `src` code and console script along with runtime dependency declarations, the README, and the Apache 2.0 license. Keep development tools, temporary projects, and local Drift state out of release packages. Verify file contents and metadata for both artifact types. Smoke-install the exact artifacts that will ship, then calculate and record their SHA-256 digests.
+The release packaging workflow builds one wheel and one sdist with Hatchling through `uv build`. It checks archive contents, metadata, the license, and the console entry point, then uploads both distributions and `SHA256SUMS` as the `distributions` workflow artifact. Every install job verifies those checksums before running the installed console contract.
+
+| Installer | Artifact | Smoke coverage |
+| --- | --- | --- |
+| uv tool | Wheel | Linux, macOS, and Windows on Python 3.12 and 3.15 |
+| pipx | Source distribution | Linux, macOS, and Windows on Python 3.12 and 3.15 |
+
+To reproduce the artifact checks locally, use a fresh output directory.
+
+```sh
+uv build --no-create-gitignore --out-dir release-dist
+uv run --locked python scripts/check_distributions.py release-dist
+uv run --locked python scripts/check_distributions.py release-dist --verify
+uv run --locked python scripts/smoke_distribution.py release-dist uv
+uv run --locked python scripts/smoke_distribution.py release-dist pipx
+```
 
 Use SemVer and a matching Git tag of the form `vMAJOR.MINOR.PATCH`. Use `0.1.0` as the starting target for the first public release. Check that the tag, package metadata, and CLI version agree. Record user-visible changes, fixes, compatibility notes, and manual upgrade steps in a maintained changelog. Persisted schema versions follow the separate [data model](DATA_MODEL.md#json-schema-v1).
 

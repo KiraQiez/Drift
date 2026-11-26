@@ -27,6 +27,7 @@ drift = "drift.cli:app"
 [dependency-groups]
 dev = [
     "mypy>=1.15,<3",
+    "packaging>=25,<27",
     "pytest>=8,<10",
     "ruff>=0.11,<1",
 ]
