@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The collector engine foundation is complete. The next implementation task is **T-006**. A task is eligible once its listed dependencies are complete.
+The collector engine foundation is complete. The next implementation task is **T-007**. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -55,11 +55,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** Name-only collection, a declaration scanner, and bounded checksum probes.
   - **Complete when** Value-only edits leave results stable, file and active names stay distinct, and checksums and failures match fixtures.
   - **Verified** Ruff, Mypy, and 86 tests passed on macOS with Python 3.12. One Windows-only test was skipped. Fixtures covered value-only edits, multiline declarations, missing and oversized files, symlinks, and a replaced manifest.
-- [ ] **T-006 · Observe local Docker and scoped services** · P1
+- [x] **T-006 · Observe local Docker and scoped services** · P1
   - **Dependencies** `T-003`
   - **Requirements** `FR-003`, `NFR-001`, `NFR-002`, `NFR-005`
   - **Deliverable** Docker client, local daemon, Compose, and explicit project service probes.
   - **Complete when** Mocked commands distinguish tool absence, daemon absence and failure, and emit only allowed fields for the selected project.
+  - **Verified** Ruff, Mypy, and 94 tests passed on macOS with Python 3.12. One Windows-only test was skipped. Fixtures covered isolated client settings, system and user Compose detection, daemon failure classification, and exact project filtering. A local Docker Desktop smoke test confirmed client detection, daemon reachability, and the per-user Compose fallback.
 - [ ] **T-007 · Collect safe Git context** · P1
   - **Dependencies** `T-003`
   - **Requirements** `FR-006`, `NFR-001`, `NFR-002`

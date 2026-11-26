@@ -4,7 +4,7 @@ import os
 import re
 import signal
 import subprocess
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from time import monotonic, sleep
@@ -64,7 +64,9 @@ def _resolve(executable: str | Path, search: Sequence[Path]) -> Path | ProbeIssu
 
 
 def _capture(
-    process: subprocess.Popen[bytes], deadline: float
+    process: subprocess.Popen[bytes],
+    deadline: float,
+    classify_exit: Callable[[bytes], ProbeIssue] | None,
 ) -> CommandOutput | ProbeIssue:
     assert process.stdout is not None and process.stderr is not None
     stdout, stderr = bytearray(), bytearray()
@@ -91,6 +93,8 @@ def _capture(
 
         if not streams and (returncode := process.poll()) is not None:
             if returncode != 0:
+                if classify_exit is not None:
+                    return classify_exit(bytes(stderr))
                 return ProbeIssue("failed", "command_failed")
             return CommandOutput(bytes(stdout), bytes(stderr))
         if not received:
@@ -116,6 +120,8 @@ def run_probe(
     cwd: Path,
     deadline: float,
     profile: Literal["default", "go"] = "default",
+    docker_config: Path | None = None,
+    classify_exit: Callable[[bytes], ProbeIssue] | None = None,
 ) -> CommandOutput | ProbeIssue:
     """Run a trusted tool name with arguments supplied by collector code."""
     if not cwd.is_absolute():
@@ -133,6 +139,8 @@ def run_probe(
     environment.update(PATH=os.pathsep.join(map(str, search)), LC_ALL="C", LANG="C")
     if profile == "go":
         environment.update(GOTOOLCHAIN="local", GOENV="off")
+    if docker_config is not None:
+        environment["DOCKER_CONFIG"] = str(docker_config)
 
     try:
         if not cwd.is_dir():
@@ -154,10 +162,8 @@ def run_probe(
         ) as process:
             finished = False
             try:
-                result = _capture(process, deadline)
-                finished = (
-                    isinstance(result, CommandOutput) or result.code == "command_failed"
-                )
+                result = _capture(process, deadline, classify_exit)
+                finished = process.returncode is not None
                 return result
             finally:
                 if not finished:

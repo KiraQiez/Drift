@@ -43,9 +43,10 @@ def test_runtime_formats_and_go_controls(tmp_path, monkeypatch):
         return outputs[tool]
 
     monkeypatch.setattr(runtime, "run_probe", run)
-    result = run_collectors(
-        tmp_path, context(tmp_path).config, build_registry(context(tmp_path).config)
+    config = ProjectConfig.model_validate(
+        {"schema_version": 1, "collectors": {"docker": False}}
     )
+    result = run_collectors(tmp_path, config, build_registry(config))
     assert result["runtime"].probes == dict(
         zip(
             runtime.PROBE_IDS,

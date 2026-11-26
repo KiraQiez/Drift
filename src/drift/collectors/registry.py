@@ -1,6 +1,6 @@
 """Build the registry of collectors supported for a project."""
 
-from drift.collectors import dependency, environment, runtime, system
+from drift.collectors import dependency, docker, environment, runtime, system
 from drift.collectors.base import CollectorId, CollectorSpec
 from drift.config import ProjectConfig
 
@@ -8,6 +8,7 @@ from drift.config import ProjectConfig
 def build_registry(config: ProjectConfig) -> dict[CollectorId, CollectorSpec]:
     return {
         "dependency": CollectorSpec(dependency.PROBE_IDS, dependency.collect),
+        "docker": CollectorSpec(docker.PROBE_IDS, docker.collect),
         "environment": CollectorSpec(
             environment.probe_ids(config), environment.collect
         ),
