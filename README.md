@@ -1,63 +1,144 @@
-# Drift
+<h1 align="center">
+  <img src="docs/assets/drift-hero.jpg" alt="Drift" width="100%">
+</h1>
 
-**Your code hasn't changed. Your environment has.**
+<p align="center">
+  <img src="docs/assets/drift-icon.png" alt="" width="32" height="32">
+  <br>
+  <strong>Track what changed in your development environment.</strong>
+</p>
 
-Drift (Development Environment Version Control) is a developer CLI. Git tracks changes to your source code. Drift is designed to help you find changes in the environment around it, such as a new runtime version, a changed lockfile, or a Docker service that stopped.
+<p align="center">
+  <a href="https://pypi.org/project/drift-dev-env/"><img src="https://img.shields.io/pypi/v/drift-dev-env?logo=pypi&amp;color=0c7363" alt="Latest Drift version on PyPI"></a>
+  <a href="https://github.com/KiraQiez/Drift/actions/workflows/quality.yml?query=branch%3Amain"><img src="https://github.com/KiraQiez/Drift/actions/workflows/quality.yml/badge.svg?branch=main&amp;event=push" alt="CI checks on main"></a>
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/Python-3.12%2B-306998?logo=python&amp;logoColor=white" alt="Requires Python 3.12 or newer"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-586174" alt="Apache 2.0 license"></a>
+</p>
 
-Drift captures local snapshots, shows what changed, and verifies the current environment against a known-working baseline. It tracks environment variable names and file declarations while leaving values out of snapshots and reports.
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#use-drift-in-a-project">Use Drift</a> ·
+  <a href="#see-it-work">See it work</a> ·
+  <a href="#documentation">Docs</a>
+</p>
 
-## Workflow
+Drift is a command-line tool for comparing your current setup with a snapshot you saved when the project worked. It can spot a runtime upgrade, a changed lockfile, or a change in Docker availability. Snapshots stay in the project’s `.drift/` directory, and environment variables are recorded by name only.
+
+## Install
+
+**macOS with Homebrew**
+
+```sh
+brew install KiraQiez/tap/drift
+drift --version
+```
+
+| Other installers | Command |
+| --- | --- |
+| uv | `uv tool install drift-dev-env` |
+| pipx | `pipx install drift-dev-env` |
+
+uv and pipx work on macOS, Linux, and Windows. Drift requires Python 3.12 or newer.
+
+## Use Drift in a project
+
+### Save a snapshot while the project works
+
+Open a terminal in your project’s root directory and run these commands.
 
 ```sh
 drift init
 drift snapshot -m "Working environment"
-drift history
-drift baseline set a81f23
-drift diff
-drift verify --json
 ```
 
-Use the snapshot ID or a unique prefix from your own history when setting a baseline. A verification exits with code `0` for a match, `3` for confirmed drift, and `4` for incomplete coverage. See the [CLI specification](docs/CLI_SPEC.md) for the full contract.
+`drift init` creates `drift.toml` and the local state directory. The snapshot command prints `Saved snapshot` followed by an ID. Copy that ID, or retrieve it later with `drift history`.
 
-## Installation
+### Set that snapshot as your baseline
 
-Choose one installer. Homebrew is available on macOS.
+Replace `SNAPSHOT_ID` with the ID you copied.
 
 ```sh
-brew install KiraQiez/tap/drift
-uv tool install drift-dev-env
-pipx install drift-dev-env
+drift baseline set SNAPSHOT_ID
+drift verify
 ```
 
-Run `drift --version` to verify the installation.
+### Check again after something changes
 
-## Development
+Run `drift verify` from the same project after an update or when a command stops working. It checks the saved baseline even if you’ve taken more snapshots in the meantime.
 
-From a checkout with uv and Just available, run the commands below. Use `uv run --locked drift` in place of `drift` when working directly from the checkout.
+| When you want to… | Run |
+| --- | --- |
+| Compare against your known-working baseline | `drift verify` |
+| Compare against the latest snapshot | `drift diff` |
+| Compare against another snapshot | `drift diff SNAPSHOT_ID` |
+| Inspect the contents of a snapshot | `drift show SNAPSHOT_ID` |
+| Use the baseline result in a script | `drift verify --json` |
+
+For `drift verify`, exit code **0** means a match, **3** means a confirmed change, and **4** means the comparison had gaps and found no confirmed change. [Full exit-code reference](docs/CLI_SPEC.md#exit-codes-and-errors)
+
+## See it work
+
+Here’s what Drift reports after a line changes in `requirements.txt`. The hashes are shortened for readability.
+
+```text
+$ drift diff
+Drift detected against 94eb33b51c6f41cb81949389e1ab3628
+Modified  dependency.manifest:requirements.txt  44076022… → a5e38db6…
+```
+
+<details>
+<summary>Run this demo in a temporary project on macOS or Linux</summary>
+
+Paste this into your terminal after installing Drift. The demo enables only the dependency collector so the manifest change is easy to see.
 
 ```sh
-just setup
+(
+  set -e
+  cd "$(mktemp -d)"
+  drift init
+
+  cat > drift.toml <<'EOF'
+schema_version = 1
+
+[collectors]
+system = false
+runtime = false
+docker = false
+environment = false
+git = false
+EOF
+
+  printf 'demo==1.0\n' > requirements.txt
+  drift snapshot -m "Before the change"
+  printf 'demo==2.0\n' > requirements.txt
+  drift diff || test "$?" -eq 3
+)
+```
+
+</details>
+
+## Run from source
+
+From a checkout with uv installed, run the source CLI.
+
+```sh
+uv sync --locked
 uv run --locked drift --help
-uv run --locked drift --version
-just check
 ```
 
-See the [development guide](docs/DEVELOPMENT.md) for contributor commands and the [roadmap](docs/ROADMAP.md) for implementation status.
+Use `uv run --locked drift` in place of `drift` in the examples. Run `just check` for lint, type checks, and tests if you have Just installed.
 
 ## Documentation
 
-| If you want to understand… | Read |
+| Topic | Guide |
 | --- | --- |
-| Who Drift is for and what the MVP covers | [Product requirements](docs/PRD.md) |
-| How to use commands and interpret their output | [CLI specification](docs/CLI_SPEC.md) |
-| How the components fit together and why | [Architecture](docs/ARCHITECTURE.md) |
-| How configuration, snapshots, and comparison work | [Data model](docs/DATA_MODEL.md) |
-| What Drift collects and how it protects local state | [Security and privacy](docs/SECURITY.md) |
-| How to keep commits focused and code maintainable | [Contribution rules](RULES.md) |
-| How to develop and test Drift | [Development guide](docs/DEVELOPMENT.md) |
-| What is planned and what is complete | [Roadmap and task checklist](docs/ROADMAP.md) |
-| How Drift is packaged and published | [Release and distribution](docs/RELEASE.md) |
+| All commands and options | [CLI specification](docs/CLI_SPEC.md) |
+| Configuration and snapshot storage | [Data model](docs/DATA_MODEL.md) |
+| What Drift collects | [Security and privacy](docs/SECURITY.md) |
+| Project design and scope | [Architecture](docs/ARCHITECTURE.md) · [Product requirements](docs/PRD.md) |
+| Development and conventions | [Development guide](docs/DEVELOPMENT.md) · [Contribution rules](RULES.md) |
+| Releases and implementation status | [Release guide](docs/RELEASE.md) · [Roadmap](docs/ROADMAP.md) |
 
-The `docs/` directory serves contributors and AI agents. [AGENTS.md](AGENTS.md) directs AI agents to their workflow in `.ai/rules/`.
+The guides in `docs/` are for contributors and AI agents. [AGENTS.md](AGENTS.md) points AI agents to their workflow rules in `.ai/rules/`.
 
-Drift is licensed under the [Apache License 2.0](LICENSE).
+[Apache License 2.0](LICENSE)
