@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The project foundation is complete. The next implementation task is **T-003**, pending approval. A task is eligible once its listed dependencies are complete.
+The collector engine foundation is complete. The next implementation task is **T-004**, pending approval. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -37,11 +37,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
 
 ### Phase 2. Collector engine
 
-- [ ] **T-003 · Run bounded typed probes** · P0
+- [x] **T-003 · Run bounded typed probes** · P0
   - **Dependencies** `T-002`
   - **Requirements** `FR-002`, `FR-007`, `NFR-001`, `NFR-002`, `NFR-004`, `NFR-008`
   - **Deliverable** The collector contract, registry, scheduler, and shared subprocess runner.
   - **Complete when** Timeouts, overflow, failed commands, missing launchers, and unexpected collector errors yield isolated, sanitized results.
+  - **Verified** On macOS arm64, Ruff, Mypy, and the package build passed. Python 3.12.16 and 3.14.8 each passed 74 tests, with one native Windows launcher test skipped. Tests covered process reaping, inherited pipes, the combined output cap, environment filtering, missing launchers, and collector failure isolation.
 - [ ] **T-004 · Collect system and runtime data** · P0
   - **Dependencies** `T-003`
   - **Requirements** `FR-002`, `NFR-002`, `NFR-005`

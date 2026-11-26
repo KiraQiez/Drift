@@ -42,6 +42,8 @@ flowchart TD
 
 Use simple functions and a fixed internal collector registry. Each collector receives a read-only context with the resolved root, its validated settings, and the probe deadline. It returns typed results independent of terminal output. Keep subprocess execution and safe file access reusable at the collector boundary. Add a future collector through the registry, schemas, and compatibility tests.
 
+Register each collector with its expected probe IDs for the current project. The scheduler returns collector IDs and probe IDs in sorted order. Disabled collectors return an empty result without running. A collector that raises or returns unexpected probe IDs gets a sanitized failure for its registered probes.
+
 Start runtime detection with `python -I -S --version` (try `python3` only when `python` is absent), `node --version`, `npm --version`, `php -n -v`, `java -version`, and `go version`. The [security design](SECURITY.md#subprocess-safety) defines launcher and environment restrictions. Parse a version token specific to each tool, including the Java version line on stderr. Treat unrecognized output as a failed probe. System probes use `platform` for the OS, OS version, and machine architecture, with the macOS product version preferred over the Darwin kernel release.
 
 ## Capture and comparison
@@ -71,6 +73,8 @@ flowchart TD
 ### Execution limits
 
 Run at most six collectors concurrently, with one worker per enabled collector. Use a two-second timeout per subprocess and an eight-second budget per collector, measured with a monotonic clock. Each probe gets at most its collector's remaining time. Limit captured subprocess output to 256 KiB combined, terminate and reap a probe on timeout or overflow, and record a bounded failure code. File-based collectors stop between chunks or files when their budget is exhausted and preserve completed observations. A synchronous filesystem call can still stall inside the OS, so the file budget is cooperative. Support local filesystems for project data and document the limitation.
+
+The scheduler marks unfinished collectors as timed out at the deadline and returns completed results. Worker threads cannot interrupt a filesystem call in the OS, and interpreter shutdown can still wait for those threads to finish.
 
 Translate expected command, parse, and file failures to per-probe statuses or typed application errors. An unexpected collector error becomes a sanitized collector failure with a diagnostic code. Errors loading required configuration or reference data stop the dependent operation. History can report individual read failures alongside readable entries. Readers observe complete files. Independent snapshot writes avoid a shared mutable index. Baseline updates replace one metadata file. See [storage and comparison](DATA_MODEL.md) for concurrency and recovery behavior.
 
