@@ -115,6 +115,14 @@ jobs:
           git -C "$tap" init --quiet
           git -C "$tap" add Formula/drift.rb
           git -C "$tap" -c user.name="Drift CI" -c user.email="drift-ci@example.invalid" commit -qm "Add candidate formula"
+          # Keep runner-provided third-party taps out of Homebrew's discovery.
+          runner_taps="$(brew tap)"
+          while IFS= read -r runner_tap; do
+            case "$runner_tap" in ""|homebrew/*) continue ;; esac
+            parked="$RUNNER_TEMP/drift-runner-taps/$runner_tap"
+            mkdir -p "$(dirname "$parked")"
+            mv "$(brew --repository "$runner_tap")" "$parked"
+          done <<< "$runner_taps"
           formula=drift-ci/tap/drift
           brew tap --custom-remote drift-ci/tap "file://$tap"
           brew install --build-from-source "$formula"
