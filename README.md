@@ -51,6 +51,7 @@ See the [development guide](docs/DEVELOPMENT.md) for contributor commands and th
 | How the components fit together and why | [Architecture](docs/ARCHITECTURE.md) |
 | How configuration, snapshots, and comparison work | [Data model](docs/DATA_MODEL.md) |
 | What Drift collects and how it protects local state | [Security and privacy](docs/SECURITY.md) |
+| How to keep commits focused and code maintainable | [Contribution rules](RULES.md) |
 | How to develop and test Drift | [Development guide](docs/DEVELOPMENT.md) |
 | What is planned and what is complete | [Roadmap and task checklist](docs/ROADMAP.md) |
 | How Drift is packaged and published | [Release and distribution](docs/RELEASE.md) |

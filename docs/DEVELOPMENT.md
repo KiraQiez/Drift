@@ -16,12 +16,7 @@ Run these commands from the repository root. Use the locked development environm
 
 ## Engineering standards
 
-- Use Python, PEP 8, and the repository's Ruff configuration. Give public functions type annotations and keep functions focused with descriptive names.
-- Prefer composition, existing project logic, and the standard library. Keep tooling dependencies separate from runtime dependencies. Explain consequential dependency changes in the [architecture decisions](ARCHITECTURE.md#design-decisions).
-- Use `pathlib` for paths, timezone-aware UTC timestamps, and stable ordering for public output. Use typed errors, handle unexpected errors at defined boundaries, and keep terminal formatting outside core logic.
-- Keep abstractions focused on behavior already needed or a boundary that needs independent testing. Dependency injection frameworks, speculative plugin systems, generic repository layers, and service infrastructure fall outside the design.
-- Implement collectors and storage according to the [security contract](SECURITY.md), including bounded subprocesses, project-local writes, and value-free environment observations.
-- Keep updates focused. When behavior changes, update its owning document and the related tests. Use the [roadmap](ROADMAP.md) for task status and verification evidence.
+Follow the shared [contribution rules](../RULES.md) for coding, commits, and verification. Use this guide for development commands and test expectations.
 
 ## Test structure and fixtures
 
