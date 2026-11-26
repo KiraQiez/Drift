@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-Release identities are set. The next implementation task is **T-020**. A task is eligible once its listed dependencies are complete.
+Packaging and installer checks are verified. The next implementation task is **T-021**. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -154,11 +154,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** A maintainer-approved distribution name, GitHub identity, and tap identity with collision checks.
   - **Complete when** The installation examples and publish targets reflect verified ownership and naming choices.
   - **Verified** Checked the PyPI distribution and Homebrew formula names, verified maintainer access to the GitHub namespace, and passed the local quality checks.
-- [ ] **T-020 · Validate distributable artifacts** · P1
+- [x] **T-020 · Validate distributable artifacts** · P1
   - **Dependencies** `T-017`, `T-018`, `T-019`
   - **Requirements** `FR-012`, `NFR-005`, `NFR-006`
   - **Deliverable** The build and installer smoke workflow.
   - **Complete when** Wheel and sdist metadata, contents, hashes, and clean installs pass on the supported platforms.
+  - **Verified** Verified both archives and their hashes, rejected a tampered wheel, and passed both installer smoke tests in all six jobs. [Packaging run](https://github.com/KiraQiez/Drift/actions/runs/45790293876)
 - [ ] **T-021 · Prepare PyPI and GitHub release automation** · P1
   - **Dependencies** `T-019`, `T-020`
   - **Requirements** `FR-012`, `NFR-006`
