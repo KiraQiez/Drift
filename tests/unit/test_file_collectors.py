@@ -1,4 +1,5 @@
 import hashlib
+import os
 from time import monotonic
 
 import pytest
@@ -95,7 +96,20 @@ def test_hashes_known_files_and_reports_links(tmp_path):
     assert result["manifest:uv.lock"] == ProbeIssue("unavailable", "not_found")
 
 
-def test_detects_replaced_manifest(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    "replace",
+    [
+        False,
+        pytest.param(
+            True,
+            marks=pytest.mark.skipif(
+                os.name == "nt", reason="Windows denies replacing this open file"
+            ),
+        ),
+    ],
+    ids=["in-place", "replace"],
+)
+def test_detects_changed_manifest(tmp_path, monkeypatch, replace):
     manifest = tmp_path / "go.mod"
     manifest.write_bytes(b"module original")
     signature = dependency._signature
@@ -105,10 +119,12 @@ def test_detects_replaced_manifest(tmp_path, monkeypatch):
         nonlocal calls
         result = signature(stream)
         calls += 1
-        if calls == 2:
+        if calls == 2 and replace:
             replacement = tmp_path / "replacement"
             replacement.write_bytes(b"module changed!")
             replacement.replace(manifest)
+        elif calls == 2:
+            manifest.write_bytes(b"module changed in place")
         return result
 
     monkeypatch.setattr(dependency, "_signature", replace_after_open)

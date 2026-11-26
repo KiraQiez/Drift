@@ -101,6 +101,7 @@ def test_docker_socket_failure_classification(tmp_path, monkeypatch, error):
             raise error("private raw error")
 
     monkeypatch.setattr(docker.socket, "socket", lambda *_: Socket())
+    monkeypatch.setattr(docker.socket, "AF_UNIX", 1, raising=False)
     monkeypatch.setattr(docker, "_endpoint", lambda: "unix:///var/run/docker.sock")
     monkeypatch.setattr(
         docker,

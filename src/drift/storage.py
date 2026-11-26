@@ -4,6 +4,7 @@ import errno
 import json
 import os
 from pathlib import Path
+from time import sleep
 from uuid import uuid4
 
 from pydantic import ValidationError
@@ -11,6 +12,7 @@ from pydantic import ValidationError
 from drift.exceptions import (
     AmbiguousSnapshotError,
     InvalidSnapshotError,
+    PathChangedError,
     SnapshotNotFoundError,
     StorageError,
     UnsafePathError,
@@ -33,6 +35,23 @@ from drift.paths import (
 STATE = ".drift"
 SNAPSHOTS = (STATE, "snapshots")
 METADATA = f"{STATE}/metadata.json"
+_WINDOWS_TRIES = 10
+
+
+def _replace_file(stage: str, target: str, descriptor: int | None) -> None:
+    for attempt in range(_WINDOWS_TRIES):
+        try:
+            os.replace(stage, target, src_dir_fd=descriptor, dst_dir_fd=descriptor)
+        except PermissionError as error:
+            if (
+                os.name != "nt"
+                or getattr(error, "winerror", None) not in {5, 32, 33}
+                or attempt == _WINDOWS_TRIES - 1
+            ):
+                raise
+            sleep(0.01)
+        else:
+            return
 
 
 def _sync_directory(descriptor: int | None) -> None:
@@ -92,9 +111,7 @@ def publish_file(
                     stream.flush()
                     os.fsync(stream.fileno())
                 if replace:
-                    os.replace(
-                        stage, target, src_dir_fd=descriptor, dst_dir_fd=descriptor
-                    )
+                    _replace_file(stage, target, descriptor)
                 else:
                     try:
                         os.link(
@@ -183,6 +200,14 @@ def _encoded[Record: StrictRecord](record: Record, model: type[Record]) -> bytes
 
 
 def read_metadata(root: Path) -> Metadata:
+    if os.name == "nt":
+        # A concurrent atomic replacement can invalidate the fallback reader's
+        # pre-open identity check even though either complete file is valid.
+        for _ in range(_WINDOWS_TRIES - 1):
+            try:
+                return _read_record(root, METADATA, Metadata, StorageError)
+            except PathChangedError:
+                sleep(0.01)
     return _read_record(root, METADATA, Metadata, StorageError)
 
 

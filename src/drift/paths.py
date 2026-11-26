@@ -9,7 +9,7 @@ from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import BinaryIO
 
-from drift.exceptions import UnsafePathError
+from drift.exceptions import PathChangedError, UnsafePathError
 
 _INVALID_CHARACTER = re.compile(r'[<>:"\\|?*\x00-\x1f\x7f\ud800-\udfff]')
 _RESERVED_NAME = re.compile(r"(?:CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|(?:COM|LPT)[0-9¹²³])")
@@ -137,5 +137,7 @@ def open_project_file(root: Path, relative_path: str) -> Iterator[BinaryIO]:
         require_kind(opened, directory=False)
         _, after = _checked_file(root, parts)
         if not (os.path.samestat(before, opened) and os.path.samestat(opened, after)):
-            raise UnsafePathError("The project file changed while it was being opened.")
+            raise PathChangedError(
+                "The project file changed while it was being opened."
+            )
         yield stream

@@ -29,6 +29,10 @@ class UnsafePathError(DriftError):
     code = "unsafe_path"
 
 
+class PathChangedError(UnsafePathError):
+    """A checked path was replaced while opening it."""
+
+
 class StorageError(DriftError):
     code = "storage_error"
 
