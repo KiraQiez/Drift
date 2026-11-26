@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-Drift is at the documentation stage. The next implementation task is **T-001**, pending approval. A task is eligible once its listed dependencies are complete.
+The package foundation is complete. The next implementation task is **T-002**, pending approval. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -22,11 +22,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
 
 ### Phase 1. Project foundation
 
-- [ ] **T-001 · Establish the repository and package** · P0
+- [x] **T-001 · Establish the repository and package** · P0
   - **Dependencies** None
   - **Requirements** `FR-011`, `NFR-005`, `NFR-006`
   - **Deliverable** Local Git initialization, Python `src` package, provisional metadata and console entry point, lockfile, license, ignore rules, Just recipes, and initial tests.
   - **Complete when** A locked setup runs help, version, quality checks, and a local build.
+  - **Verified** On macOS arm64, `just setup`, `just check`, and `just build` passed on Python 3.12.16. All four CLI tests also passed on Python 3.14.8. Fresh installs from the wheel and sdist both passed help and version checks from an empty directory.
 - [ ] **T-002 · Load configuration and constrain project paths** · P0
   - **Dependencies** `T-001`
   - **Requirements** `FR-001`, `FR-004`, `FR-011`, `NFR-003`

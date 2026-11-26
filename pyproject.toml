@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "drift-dev-env"
+version = "0.1.0.dev0"
+description = "Track changes in local development environments."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+dependencies = [
+    "pydantic>=2.10,<3",
+    "rich>=13.9,<16",
+    "typer>=0.16,<1",
+]
+
+[project.scripts]
+drift = "drift.cli:app"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15,<3",
+    "pytest>=8,<10",
+    "ruff>=0.11,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/drift"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src/drift", "/LICENSE", "/README.md", "/pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true

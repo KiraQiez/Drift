@@ -2,9 +2,9 @@
 
 ## Commands
 
-The project foundation task will add these commands. Use the locked development environment for local checks and CI. Track the uv lockfile in Git and update it when dependencies change.
+Run these commands from the repository root. Use the locked development environment for local checks and CI. Track the uv lockfile in Git and update it when dependencies change.
 
-| Command | Purpose | Planned invocation |
+| Command | Purpose | Invocation |
 | --- | --- | --- |
 | `just setup` | Sync the development environment | `uv sync --locked` |
 | `just test` | Run Pytest | `uv run --locked pytest` |

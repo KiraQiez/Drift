@@ -2,6 +2,8 @@
 
 Drift is non-interactive. Each invocation targets one project, emits one report or error, and exits. JSON fields and exit codes in this document are part of the v1 CLI contract.
 
+The current package implements root help, including invocation without arguments, and `--version`. Project selection and the subcommands below describe the planned v1 interface.
+
 ## Syntax and project selection
 
 ```text

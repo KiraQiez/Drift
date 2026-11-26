@@ -4,6 +4,8 @@
 
 Use Drift as the working project name and `drift` as the proposed console script and tap formula name. The exact `drift` PyPI project name is occupied. Before configuring publication, verify a distinct normalized distribution name, check for product, import, formula, and executable collisions, and confirm the maintainer-controlled GitHub and tap paths. Use the chosen distribution name in metadata and installation instructions. The Python distribution and console script can have different names. [Existing PyPI project](https://pypi.org/project/drift/)
 
+Development builds use `drift-dev-env` and the prerelease version `0.1.0.dev0`. The public distribution name is a decision for T-019.
+
 ```sh
 brew install OWNER/tap/drift
 uv tool install PACKAGE_NAME

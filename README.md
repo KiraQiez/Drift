@@ -2,7 +2,7 @@
 
 **Your code hasn't changed. Your environment has.**
 
-Drift (Development Environment Version Control) is a developer CLI in the design stage. Git tracks changes to your source code. Drift is designed to help you find changes in the environment around it, such as a new runtime version, a changed lockfile, or a Docker service that stopped.
+Drift (Development Environment Version Control) is a developer CLI in early development. Git tracks changes to your source code. Drift is designed to help you find changes in the environment around it, such as a new runtime version, a changed lockfile, or a Docker service that stopped.
 
 The planned MVP captures local snapshots, shows what changed, and verifies the current environment against a known-working baseline. It will track environment variable names and file declarations while leaving values out of snapshots and reports.
 
@@ -21,7 +21,7 @@ Use the snapshot ID or a unique prefix from your own history when setting a base
 
 ## Installation plans
 
-The CLI and packages are in development. These commands illustrate the planned installation methods once packages are published and the placeholders have been replaced.
+These commands illustrate the planned installation methods once packages are published and the placeholders have been replaced.
 
 ```sh
 brew install OWNER/tap/drift
@@ -31,7 +31,16 @@ pipx install PACKAGE_NAME
 
 ## Development
 
-The first [implementation task](docs/ROADMAP.md#phase-1-project-foundation) will establish the package and development commands. See the [development guide](docs/DEVELOPMENT.md) for the planned contributor workflow.
+The current CLI provides root help and version output. Run these commands from a checkout with uv and Just available.
+
+```sh
+just setup
+uv run --locked drift --help
+uv run --locked drift --version
+just check
+```
+
+See the [development guide](docs/DEVELOPMENT.md) for contributor commands and the [roadmap](docs/ROADMAP.md) for implementation status.
 
 ## Documentation
 
@@ -48,4 +57,4 @@ The first [implementation task](docs/ROADMAP.md#phase-1-project-foundation) will
 
 The `docs/` directory serves contributors and AI agents. [AGENTS.md](AGENTS.md) directs AI agents to their workflow in `.ai/rules/`.
 
-The planned license is Apache License 2.0. The license file is part of the project foundation milestone.
+Drift is licensed under the [Apache License 2.0](LICENSE).

@@ -74,12 +74,14 @@ Run at most six collectors concurrently, with one worker per enabled collector. 
 
 Translate expected command, parse, and file failures to per-probe statuses or typed application errors. An unexpected collector error becomes a sanitized collector failure with a diagnostic code. Errors loading required configuration or reference data stop the dependent operation. History can report individual read failures alongside readable entries. Readers observe complete files. Independent snapshot writes avoid a shared mutable index. Baseline updates replace one metadata file. See [storage and comparison](DATA_MODEL.md) for concurrency and recovery behavior.
 
-## Planned repository layout
+## Repository layout
+
+The foundation provides `src/drift/cli.py`, CLI integration tests, and the root metadata, uv lockfile, Justfile, Python version file, and license. The layout expands as each feature is implemented.
 
 - `src/drift/` contains `cli.py`, `output.py`, `models.py`, `config.py`, `storage.py`, and `exceptions.py` as their tasks require them.
 - `src/drift/collectors/` contains the shared runner and contract, plus the system, runtime, Docker, environment, dependency, and Git modules.
 - `src/drift/core/` contains snapshot and history orchestration, comparison, and baseline management. Initialization can use the configuration and storage modules directly.
-- `tests/unit/`, `tests/integration/`, and `.github/workflows/` arrive with the appropriate tasks. The root will hold the package metadata, uv lockfile, Justfile, Python version file, and license.
+- `tests/unit/` and `.github/workflows/` arrive with the appropriate tasks.
 
 ## Technology stack
 
