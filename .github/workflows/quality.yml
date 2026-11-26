@@ -40,5 +40,7 @@ jobs:
         run: uv run --locked mypy src
       - name: Run tests
         run: uv run --locked pytest -ra
+      - name: Measure fixture capture
+        run: uv run --locked python scripts/measure_capture.py
       - name: Build package
         run: uv build
