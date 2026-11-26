@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The CLI workflow through verification is complete. The next implementation task is **T-016**, pending approval. A task is eligible once its listed dependencies are complete.
+Production readiness checks are complete. The next implementation task is **T-019**, pending approval. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -139,11 +139,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** The GitHub Actions quality matrix.
   - **Complete when** The minimum and current supported Python versions pass on Linux, macOS, and Windows, with capability-specific cases documented.
   - **Verified** All six hosted jobs passed locked setup, Ruff, Mypy, pytest, and package builds on Linux, macOS, and Windows with Python 3.12 and 3.15. Native Windows checks confirmed the baseline sharing retries. [Quality run](https://github.com/KiraQiez/Drift/actions/runs/45788474178)
-- [ ] **T-018 · Complete the privacy, filesystem, and latency review** · P0
+- [x] **T-018 · Complete the privacy, filesystem, and latency review** · P0
   - **Dependencies** `T-006`, `T-007`, `T-016`, `T-017`
   - **Requirements** `NFR-001`, `NFR-002`, `NFR-003`, `NFR-004`, `NFR-005`, `NFR-008`
   - **Deliverable** Platform evidence for safety cases and timed fixture runs.
   - **Complete when** The sentinel and scope tests pass, probe bounds are verified, and remaining limitations and measured latency are recorded.
+  - **Verified** All six hosted jobs passed the privacy sentinels, applicable filesystem tests, and simulated probe bounds. Both Windows jobs passed the native junction case. Seven-capture medians ranged from 0.146 to 0.337 seconds against the two-second target. [Audit run](https://github.com/KiraQiez/Drift/actions/runs/45788789851)
 
 ### Phase 7. Packaging and public release
 

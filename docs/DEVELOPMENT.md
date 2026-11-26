@@ -56,3 +56,15 @@ The [quality workflow](../.github/workflows/quality.yml) runs on Linux, macOS, a
 Use fixture timings and simulated stalls to assess the [responsiveness target](PRD.md#success-metrics). Test artifacts and installers through the [release process](RELEASE.md#publication-validation-and-rollback).
 
 Run `uv run --locked python scripts/measure_capture.py` to measure capture locally. The workflow records the median and maximum of seven installed CLI snapshots in a temporary project with two manifests, one dotenv file, and the current Python executable. It disables Docker and Git for this fixture. The median target is two seconds. The timing reports target misses separately from functional failures, and the runner tests verify deadline and output enforcement with simulated stalls.
+
+### Phase 6 capture timings
+
+Median seconds for seven captures per hosted job.
+
+| Runner | Architecture | Python 3.12 | Python 3.15 |
+| --- | --- | ---: | ---: |
+| Linux | x86-64 | 0.146 | 0.184 |
+| macOS | arm64 | 0.288 | 0.210 |
+| Windows | x86-64 | 0.337 | 0.250 |
+
+All six medians met the two-second target. The fixture measures process startup, responsive collectors, and snapshot publication on the hosted runners. [Timing and test logs](https://github.com/KiraQiez/Drift/actions/runs/45788789851)
