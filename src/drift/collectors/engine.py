@@ -23,7 +23,7 @@ _COLLECTOR_TIMEOUT = 8.0
 _PRIMARY_PROBE: dict[CollectorId, str] = {"docker": "installed", "git": "repository"}
 
 
-def _rollup(
+def collector_status(
     collector_id: CollectorId, probes: Mapping[str, ProbeResult]
 ) -> CollectorStatus:
     applicable = [
@@ -78,7 +78,7 @@ def _collect(
         if observations.keys() != set(collector.probe_ids):
             return _failed(collector, "collector_error")
         probes = dict(sorted(observations.items()))
-        return CollectorResult(_rollup(collector_id, probes), probes)
+        return CollectorResult(collector_status(collector_id, probes), probes)
     except Exception:
         return _failed(collector, "collector_error")
 

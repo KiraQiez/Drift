@@ -70,11 +70,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
 
 ### Phase 3. Snapshot and storage engine
 
-- [ ] **T-008 · Implement typed local storage and atomic publication** · P0
+- [x] **T-008 · Implement typed local storage and atomic publication** · P0
   - **Dependencies** `T-002`, `T-003`
   - **Requirements** `FR-001`, `FR-007`, `FR-008`, `NFR-001`, `NFR-003`, `NFR-004`, `NFR-007`
   - **Deliverable** The v1 snapshot and metadata model, safe JSON access, ID resolution, and atomic create and replace operations.
   - **Complete when** Strict validation, collision handling, interrupted writes, and reader consistency work in fixtures and concurrent processes.
+  - **Verified** Ruff, Mypy, and 118 tests passed on macOS with Python 3.12. Fixtures covered strict parsing, IDs, permissions, unsafe paths, interrupted replacement, and concurrent no-clobber publication.
 - [ ] **T-009 · Initialize project state** · P0
   - **Dependencies** `T-008`
   - **Requirements** `FR-001`, `FR-011`, `NFR-003`, `NFR-004`

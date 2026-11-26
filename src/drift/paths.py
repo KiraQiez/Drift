@@ -37,7 +37,7 @@ def project_path_parts(relative_path: str) -> tuple[str, ...]:
     return parts
 
 
-def _require_kind(info: os.stat_result, *, directory: bool) -> None:
+def require_kind(info: os.stat_result, *, directory: bool) -> None:
     kind = stat.S_ISDIR if directory else stat.S_ISREG
     reparse_point = (
         getattr(info, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT
@@ -49,18 +49,45 @@ def _require_kind(info: os.stat_result, *, directory: bool) -> None:
 
 
 @contextmanager
-def _open_relative(root: Path, parts: tuple[str, ...]) -> Iterator[BinaryIO]:
+def project_directory(
+    root: Path, parts: tuple[str, ...] = ()
+) -> Iterator[tuple[Path, int | None]]:
+    """Hold a checked project directory, using a descriptor where supported."""
+    if parts and project_path_parts("/".join(parts)) != parts:
+        raise UnsafePathError("Use a safe, slash-separated project-relative path.")
+    path = root.joinpath(*parts)
+    if not _DESCRIPTOR_READS:
+        current = root
+        require_kind(current.lstat(), directory=True)
+        for part in parts:
+            current /= part
+            require_kind(current.lstat(), directory=True)
+        yield path, None
+        return
+
     directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
-    try:
-        with ExitStack() as directories:
+    with ExitStack() as directories:
+        try:
             directory_fd = os.open(root, directory_flags)
             directories.callback(os.close, directory_fd)
-            for part in parts[:-1]:
+            for part in parts:
                 directory_fd = os.open(part, directory_flags, dir_fd=directory_fd)
                 directories.callback(os.close, directory_fd)
+        except OSError as error:
+            if error.errno in {errno.ELOOP, errno.ENOTDIR}:
+                raise UnsafePathError(
+                    "Project paths must use real directories."
+                ) from None
+            raise
+        yield path, directory_fd
 
+
+@contextmanager
+def _open_relative(root: Path, parts: tuple[str, ...]) -> Iterator[BinaryIO]:
+    try:
+        with project_directory(root, parts[:-1]) as (_, directory_fd):
             name = parts[-1]
-            _require_kind(
+            require_kind(
                 os.stat(name, dir_fd=directory_fd, follow_symlinks=False),
                 directory=False,
             )
@@ -77,19 +104,19 @@ def _open_relative(root: Path, parts: tuple[str, ...]) -> Iterator[BinaryIO]:
         raise
 
     with os.fdopen(descriptor, "rb") as stream:
-        _require_kind(os.fstat(stream.fileno()), directory=False)
+        require_kind(os.fstat(stream.fileno()), directory=False)
         yield stream
 
 
 def _checked_file(root: Path, parts: tuple[str, ...]) -> tuple[Path, os.stat_result]:
-    _require_kind(root.lstat(), directory=True)
+    require_kind(root.lstat(), directory=True)
     path = root
     for part in parts[:-1]:
         path = path / part
-        _require_kind(path.lstat(), directory=True)
+        require_kind(path.lstat(), directory=True)
     path = path / parts[-1]
     info = path.lstat()
-    _require_kind(info, directory=False)
+    require_kind(info, directory=False)
     return path, info
 
 
@@ -105,7 +132,7 @@ def open_project_file(root: Path, relative_path: str) -> Iterator[BinaryIO]:
     path, before = _checked_file(root, parts)
     with path.open("rb") as stream:
         opened = os.fstat(stream.fileno())
-        _require_kind(opened, directory=False)
+        require_kind(opened, directory=False)
         _, after = _checked_file(root, parts)
         if not (os.path.samestat(before, opened) and os.path.samestat(opened, after)):
             raise UnsafePathError("The project file changed while it was being opened.")
