@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-Production readiness checks are complete. The next implementation task is **T-019**, pending approval. A task is eligible once its listed dependencies are complete.
+Release identities are set. The next implementation task is **T-020**. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -148,11 +148,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
 
 ### Phase 7. Packaging and public release
 
-- [ ] **T-019 · Resolve release identities** · P1
+- [x] **T-019 · Resolve release identities** · P1
   - **Dependencies** `T-001`
   - **Requirements** `FR-012`
   - **Deliverable** A maintainer-approved distribution name, GitHub identity, and tap identity with collision checks.
   - **Complete when** The installation examples and publish targets reflect verified ownership and naming choices.
+  - **Verified** Checked the PyPI distribution and Homebrew formula names, verified maintainer access to the GitHub namespace, and passed the local quality checks.
 - [ ] **T-020 · Validate distributable artifacts** · P1
   - **Dependencies** `T-017`, `T-018`, `T-019`
   - **Requirements** `FR-012`, `NFR-005`, `NFR-006`

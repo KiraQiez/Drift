@@ -16,6 +16,11 @@ dependencies = [
     "typer>=0.16,<1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/KiraQiez/Drift"
+Repository = "https://github.com/KiraQiez/Drift"
+Issues = "https://github.com/KiraQiez/Drift/issues"
+
 [project.scripts]
 drift = "drift.cli:app"
 

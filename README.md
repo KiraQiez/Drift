@@ -21,12 +21,12 @@ Use the snapshot ID or a unique prefix from your own history when setting a base
 
 ## Installation plans
 
-These commands illustrate the planned installation methods once packages are published and the placeholders have been replaced.
+These commands illustrate the planned installation methods after the first public release.
 
 ```sh
-brew install OWNER/tap/drift
-uv tool install PACKAGE_NAME
-pipx install PACKAGE_NAME
+brew install KiraQiez/tap/drift
+uv tool install drift-dev-env
+pipx install drift-dev-env
 ```
 
 ## Development

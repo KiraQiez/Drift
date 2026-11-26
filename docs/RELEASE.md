@@ -2,14 +2,22 @@
 
 ## Release identity
 
-Use Drift as the working project name and `drift` as the proposed console script and tap formula name. The exact `drift` PyPI project name is occupied. Before configuring publication, verify a distinct normalized distribution name, check for product, import, formula, and executable collisions, and confirm the maintainer-controlled GitHub and tap paths. Use the chosen distribution name in metadata and installation instructions. The Python distribution and console script can have different names. [Existing PyPI project](https://pypi.org/project/drift/)
+| Surface | Release identity |
+| --- | --- |
+| Project | Drift (Development Environment Version Control) |
+| PyPI and application installers | `drift-dev-env` |
+| Python import and console command | `drift` |
+| GitHub repository | `KiraQiez/Drift` |
+| Homebrew tap and formula | `KiraQiez/homebrew-tap` and `drift` |
 
-Development builds use `drift-dev-env` and the prerelease version `0.1.0.dev0`. The public distribution name is a decision for T-019.
+The `drift` PyPI name belongs to an existing project. The Phase 7 collision checks found no PyPI project under the normalized `drift-dev-env` name or Homebrew core formula named `drift`. The repository maintainer controls the `KiraQiez` GitHub namespace. The distribution name and tap path will be claimed as part of first-release setup. [Existing PyPI project](https://pypi.org/project/drift/)
+
+Development builds use version `0.1.0.dev0`. The first public release targets `0.1.0`.
 
 ```sh
-brew install OWNER/tap/drift
-uv tool install PACKAGE_NAME
-pipx install PACKAGE_NAME
+brew install KiraQiez/tap/drift
+uv tool install drift-dev-env
+pipx install drift-dev-env
 ```
 
 These are planned installations from the project's own tap and PyPI package. Each installer manages the application's Python environment.
