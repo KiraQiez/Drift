@@ -127,11 +127,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
 
 ### Phase 6. Production readiness
 
-- [ ] **T-016 · Verify complete workflows and public contracts** · P0
+- [x] **T-016 · Verify complete workflows and public contracts** · P0
   - **Dependencies** `T-015`
   - **Requirements** `FR-001`, `FR-007`, `FR-008`, `FR-009`, `FR-010`, `FR-011`, `NFR-007`
   - **Deliverable** Integration coverage from initialization through verification.
   - **Complete when** Each leaf command and result shape is checked with isolated projects and controlled probe inputs.
+  - **Verified** Ruff, Mypy, and 140 tests passed on macOS with Python 3.12. The installed console test exercised all seven commands from a nested directory, checked the documented JSON contracts and exit codes, and verified sanitized usage errors.
 - [ ] **T-017 · Run locked cross-platform CI** · P1
   - **Dependencies** `T-001`, `T-016`
   - **Requirements** `NFR-005`, `NFR-006`
