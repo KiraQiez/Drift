@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The staging release rehearsal is verified. The next implementation task is **T-022**. A task is eligible once its listed dependencies are complete.
+Release preparation through **T-022** is verified. **T-023** is pending approval. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -166,11 +166,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** Tag validation, changelog handling, the scoped Trusted Publisher workflow, and GitHub Release artifact delivery.
   - **Complete when** The approved staging path exercises build, validation, and publication controls.
   - **Verified** Staging passed quality, artifact validation, and the installer matrix, extracted the changelog notes, and skipped both publication jobs. Tag and notes rejection tests passed. [Release rehearsal](https://github.com/KiraQiez/Drift/actions/runs/45790709562)
-- [ ] **T-022 · Prepare the Homebrew tap** · P1
+- [x] **T-022 · Prepare the Homebrew tap** · P1
   - **Dependencies** `T-019`, `T-020`
   - **Requirements** `FR-012`, `NFR-005`
   - **Deliverable** The formula, dependency resource update process, and tap validation.
   - **Complete when** A candidate formula can install and run the CLI smoke test on a supported macOS runner.
+  - **Verified** The temporary tap installed the verified sdist on Apple Silicon and Intel macOS runners. Both passed formula loading, Brew tests, and the fixture-based CLI contract. [Homebrew rehearsal](https://github.com/KiraQiez/Drift/actions/runs/45791262149)
 - [ ] **T-023 · Publish and verify the first approved release** · P1
   - **Dependencies** `T-021`, `T-022`
   - **Requirements** `FR-012`

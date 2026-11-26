@@ -79,14 +79,14 @@ Only the PyPI job can request an OIDC token. After that job succeeds, the GitHub
 
 The [formula template](../packaging/homebrew/drift.rb.in) uses Homebrew's Python 3.14 virtual environment helper. The renderer selects compatible PyPI wheels for Apple Silicon and Intel from the locked runtime and Hatchling build dependencies. Homebrew checks each resource's SHA-256 hash before using it. The formula builds the Drift sdist with those resources and installs it without resolving packages from the network. [Homebrew language-specific formulae](https://docs.brew.sh/Language-Specific-Formulae)
 
-The release workflow renders a candidate from the validated sdist and a temporary local tap. It loads the formula, installs it, runs `brew test`, and runs the same fixture-based console contract as the Python installer jobs. The candidate uses the local archive URL from that workflow run.
+The release workflow renders a candidate from the validated sdist in a temporary local tap on Apple Silicon and Intel macOS runners. It loads the formula, installs it, runs `brew test`, and runs the same fixture-based console contract as the Python installer jobs. The candidate uses the local archive URL from that workflow run.
 
 For a tap update, use the release tag's checkout and the validated files from its workflow. Refresh the locked dependencies with `uv lock` when the package requirements change. Keep the `build` group aligned with `[build-system].requires`. After PyPI publication, set `PYPI_SDIST_URL` to the published source file URL, verify the downloaded source digest against `SHA256SUMS`, and render the formula.
 
 ```sh
 uv run --locked python scripts/check_distributions.py release-dist --verify
+mkdir -p build path/to/homebrew-tap/Formula
 uv export --locked --no-dev --group build --no-emit-project --format pylock.toml --output-file build/pylock.toml
-mkdir -p path/to/homebrew-tap/Formula
 uv run --locked python scripts/render_homebrew.py release-dist/*.tar.gz build/pylock.toml \
   path/to/homebrew-tap/Formula/drift.rb --source-url "$PYPI_SDIST_URL"
 ```
