@@ -37,6 +37,7 @@ jobs:
           uv export --locked --only-group build --no-emit-project --output-file "$RUNNER_TEMP/build-constraints.txt" > /dev/null
           uv build --no-create-gitignore --build-constraints "$RUNNER_TEMP/build-constraints.txt" --require-hashes --out-dir release-dist
           uv run --locked python scripts/check_distributions.py release-dist
+          uvx --from twine==7.0.0 twine check --strict release-dist/*.whl release-dist/*.tar.gz
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: distributions
@@ -146,7 +147,7 @@ jobs:
           sha256sum --strict --check SHA256SUMS
           mkdir ../dist
           cp -- *.whl *.tar.gz ../dist/
-      - uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
 
   publish-github:
     needs: publish-pypi
