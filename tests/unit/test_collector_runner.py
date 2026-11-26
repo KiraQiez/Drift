@@ -74,6 +74,35 @@ def test_failed_command_discards_both_streams(tmp_path: Path, executable: str) -
     assert output == ProbeIssue("failed", "command_failed")
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="Darwin process group cleanup")
+def test_exited_process_group_preserves_output_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, executable: str
+) -> None:
+    start = subprocess.Popen
+    children: list[subprocess.Popen[bytes]] = []
+    signaled: list[int] = []
+
+    def record_child(*args, **kwargs):
+        child = start(*args, **kwargs)
+        children.append(child)
+        return child
+
+    def deny_signal_after_exit(pid: int, signal: int) -> None:
+        signaled.append(pid)
+        children[0].wait(timeout=1)
+        raise PermissionError
+
+    monkeypatch.setattr(runner, "_OUTPUT_LIMIT", 1)
+    monkeypatch.setattr(runner.subprocess, "Popen", record_child)
+    monkeypatch.setattr(runner.os, "killpg", deny_signal_after_exit)
+    output = run_probe(
+        executable, ("-c", "print('overflow')"), cwd=tmp_path, deadline=monotonic() + 3
+    )
+
+    assert signaled == [children[0].pid]
+    assert output == ProbeIssue("failed", "output_limit")
+
+
 @pytest.mark.parametrize(("process_budget", "collector_budget"), [(0.2, 4), (2, 0.2)])
 def test_shorter_deadline_kills_and_reaps_the_child(
     tmp_path: Path,

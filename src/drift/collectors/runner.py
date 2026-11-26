@@ -111,6 +111,10 @@ def _stop(process: subprocess.Popen[bytes]) -> None:
             process.kill()
     except ProcessLookupError:
         pass
+    except PermissionError:
+        # Darwin can reject the group signal after the last member exits.
+        if sys.platform != "darwin" or process.poll() is None:
+            raise
     process.wait()
 
 
