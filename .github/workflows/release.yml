@@ -102,6 +102,8 @@ jobs:
           path: release-dist/
       - name: Install and test the candidate tap
         shell: bash
+        env:
+          XDG_CONFIG_HOME: ${{ runner.temp }}/drift-brew-config
         run: |
           uv run --locked python scripts/check_distributions.py release-dist --verify
           tap="$RUNNER_TEMP/drift-tap"
@@ -109,15 +111,12 @@ jobs:
           mkdir -p "$tap/Formula"
           uv export --locked --no-dev --group build --no-emit-project --format pylock.toml --output-file "$lock" > /dev/null
           uv run --locked python scripts/render_homebrew.py release-dist/*.tar.gz "$lock" "$tap/Formula/drift.rb"
+          ruby -c "$tap/Formula/drift.rb"
           git -C "$tap" init --quiet
           git -C "$tap" add Formula/drift.rb
           git -C "$tap" -c user.name="Drift CI" -c user.email="drift-ci@example.invalid" commit -qm "Add candidate formula"
           formula=drift-ci/tap/drift
           brew tap --custom-remote drift-ci/tap "file://$tap"
-          if brew command trust > /dev/null 2>&1; then
-            brew trust --formula "$formula"
-          fi
-          brew readall --syntax drift-ci/tap
           brew install --build-from-source "$formula"
           brew test "$formula"
           DRIFT_TEST_EXECUTABLE="$(brew --prefix "$formula")/bin/drift" \
