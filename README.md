@@ -42,7 +42,7 @@ uv and pipx work on macOS, Linux, and Windows. Drift requires Python 3.12 or new
 
 ## Use Drift in a project
 
-The commands below use the [staging build](#run-from-source). For the published Homebrew and PyPI packages, see the [v0.1.0 workflow](https://github.com/KiraQiez/Drift/blob/v0.1.0/README.md#workflow).
+This workflow is available in Drift 0.2.0 and later. For an older installation, see the [v0.1.0 workflow](https://github.com/KiraQiez/Drift/blob/v0.1.0/README.md#workflow).
 
 Open a terminal in a working project and save its baseline.
 
