@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The six collectors are complete. The next implementation task is **T-008**, pending approval. A task is eligible once its listed dependencies are complete.
+A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -76,11 +76,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** The v1 snapshot and metadata model, safe JSON access, ID resolution, and atomic create and replace operations.
   - **Complete when** Strict validation, collision handling, interrupted writes, and reader consistency work in fixtures and concurrent processes.
   - **Verified** Ruff, Mypy, and 118 tests passed on macOS with Python 3.12. Fixtures covered strict parsing, IDs, permissions, unsafe paths, interrupted replacement, and concurrent no-clobber publication.
-- [ ] **T-009 · Initialize project state** · P0
+- [x] **T-009 · Initialize project state** · P0
   - **Dependencies** `T-008`
   - **Requirements** `FR-001`, `FR-011`, `NFR-003`, `NFR-004`
   - **Deliverable** The `init` command and state bootstrap.
   - **Complete when** Repeated and concurrent calls preserve existing bytes, partial setup can be retried, and local state is ignored by default.
+  - **Verified** Ruff, Mypy, and 122 tests passed on macOS with Python 3.12. CLI fixtures verified repeat and partial initialization, concurrent bootstrap, preservation of existing files, and Git exclusions.
 - [ ] **T-010 · Capture snapshots** · P0
   - **Dependencies** `T-004`, `T-005`, `T-006`, `T-007`, `T-008`, `T-009`
   - **Requirements** `FR-007`, `FR-011`, `NFR-001`, `NFR-004`
