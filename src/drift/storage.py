@@ -38,16 +38,19 @@ METADATA = f"{STATE}/metadata.json"
 _WINDOWS_TRIES = 10
 
 
+def _windows_contention(error: OSError | PathChangedError) -> bool:
+    return os.name == "nt" and (
+        isinstance(error, PathChangedError)
+        or getattr(error, "winerror", None) in {5, 32, 33}
+    )
+
+
 def _replace_file(stage: str, target: str, descriptor: int | None) -> None:
     for attempt in range(_WINDOWS_TRIES):
         try:
             os.replace(stage, target, src_dir_fd=descriptor, dst_dir_fd=descriptor)
         except PermissionError as error:
-            if (
-                os.name != "nt"
-                or getattr(error, "winerror", None) not in {5, 32, 33}
-                or attempt == _WINDOWS_TRIES - 1
-            ):
+            if not _windows_contention(error) or attempt == _WINDOWS_TRIES - 1:
                 raise
             sleep(0.01)
         else:
@@ -151,6 +154,19 @@ def _invalid_constant(_value: str) -> None:
     raise ValueError("Non-finite JSON number.")
 
 
+def _read_text(root: Path, relative: str) -> str:
+    tries = _WINDOWS_TRIES
+    while True:
+        try:
+            with open_project_file(root, relative) as stream:
+                return stream.read().decode("utf-8")
+        except (OSError, PathChangedError) as error:
+            tries -= 1
+            if relative != METADATA or not tries or not _windows_contention(error):
+                raise
+            sleep(0.01)
+
+
 def _read_record[Record: StrictRecord](
     root: Path,
     relative: str,
@@ -158,8 +174,7 @@ def _read_record[Record: StrictRecord](
     damaged: type[StorageError] | type[InvalidSnapshotError],
 ) -> Record:
     try:
-        with open_project_file(root, relative) as stream:
-            text = stream.read().decode("utf-8")
+        text = _read_text(root, relative)
     except UnicodeError:
         raise damaged("Drift state is not valid UTF-8.") from None
     except FileNotFoundError:
@@ -200,14 +215,6 @@ def _encoded[Record: StrictRecord](record: Record, model: type[Record]) -> bytes
 
 
 def read_metadata(root: Path) -> Metadata:
-    if os.name == "nt":
-        # A concurrent atomic replacement can invalidate the fallback reader's
-        # pre-open identity check even though either complete file is valid.
-        for _ in range(_WINDOWS_TRIES - 1):
-            try:
-                return _read_record(root, METADATA, Metadata, StorageError)
-            except PathChangedError:
-                sleep(0.01)
     return _read_record(root, METADATA, Metadata, StorageError)
 
 
