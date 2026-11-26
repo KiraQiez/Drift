@@ -39,9 +39,12 @@ _WINDOWS_TRIES = 10
 
 
 def _windows_contention(error: OSError | PathChangedError) -> bool:
+    winerror = getattr(error, "winerror", None)
     return os.name == "nt" and (
         isinstance(error, PathChangedError)
-        or getattr(error, "winerror", None) in {5, 32, 33}
+        or winerror in {5, 32, 33}
+        # Windows CRT opens can report a sharing failure as plain EACCES.
+        or (winerror is None and isinstance(error, PermissionError))
     )
 
 

@@ -1,3 +1,4 @@
+import errno
 import json
 import os
 import subprocess
@@ -121,6 +122,25 @@ def test_refuses_symlink_parent(tmp_path):
     with pytest.raises(UnsafePathError):
         storage.publish_metadata(root, Metadata(schema_version=1, baseline_id=None))
     assert not list(outside.iterdir())
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows CRT sharing behavior")
+def test_metadata_retries_permission_error_without_winerror(state, monkeypatch):
+    record = Metadata(schema_version=1, baseline_id=FIRST_ID)
+    storage.publish_metadata(state, record)
+    original = storage.open_project_file
+    attempts = 0
+
+    def temporarily_busy(root, relative):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise PermissionError(errno.EACCES, "temporarily in use")
+        return original(root, relative)
+
+    monkeypatch.setattr(storage, "open_project_file", temporarily_busy)
+    assert storage.read_metadata(state) == record
+    assert attempts == 2
 
 
 def test_concurrent_no_clobber_publication_returns_complete_data(state):
