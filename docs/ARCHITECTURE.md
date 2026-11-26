@@ -44,6 +44,8 @@ Use simple functions and a fixed internal collector registry. Each collector rec
 
 Register each collector with its expected probe IDs for the current project. The scheduler returns collector IDs and probe IDs in sorted order. Disabled collectors return an empty result without running. A collector that raises or returns unexpected probe IDs gets a sanitized failure for its registered probes.
 
+The internal registry supplies all six collectors to the scheduler. It derives environment file probe IDs from validated project configuration. Git results supply context for later snapshot and comparison tasks.
+
 Start runtime detection with `python -I -S --version` (try `python3` only when `python` is absent), `node --version`, `npm --version`, `php -n -v`, `java -version`, and `go version`. The [security design](SECURITY.md#subprocess-safety) defines launcher and environment restrictions. Parse a version token specific to each tool, including the Java version line on stderr. Treat unrecognized output as a failed probe. System probes use `platform` for the OS, OS version, and machine architecture, with the macOS product version preferred over the Darwin kernel release.
 
 ## Capture and comparison

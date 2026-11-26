@@ -119,7 +119,7 @@ def run_probe(
     *,
     cwd: Path,
     deadline: float,
-    profile: Literal["default", "go"] = "default",
+    profile: Literal["default", "go", "git"] = "default",
     docker_config: Path | None = None,
     classify_exit: Callable[[bytes], ProbeIssue] | None = None,
 ) -> CommandOutput | ProbeIssue:
@@ -139,6 +139,17 @@ def run_probe(
     environment.update(PATH=os.pathsep.join(map(str, search)), LC_ALL="C", LANG="C")
     if profile == "go":
         environment.update(GOTOOLCHAIN="local", GOENV="off")
+    elif profile == "git":
+        environment.update(
+            GIT_CONFIG_NOSYSTEM="1",
+            GIT_CONFIG_GLOBAL=os.devnull,
+            GIT_ATTR_NOSYSTEM="1",
+            GIT_ALLOW_PROTOCOL="",
+            GIT_NO_LAZY_FETCH="1",
+            GIT_NO_REPLACE_OBJECTS="1",
+            GIT_TERMINAL_PROMPT="0",
+            GIT_OPTIONAL_LOCKS="0",
+        )
     if docker_config is not None:
         environment["DOCKER_CONFIG"] = str(docker_config)
 

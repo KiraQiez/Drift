@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The collector engine foundation is complete. The next implementation task is **T-007**. A task is eligible once its listed dependencies are complete.
+The six collectors are complete. The next implementation task is **T-008**, pending approval. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -61,11 +61,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** Docker client, local daemon, Compose, and explicit project service probes.
   - **Complete when** Mocked commands distinguish tool absence, daemon absence and failure, and emit only allowed fields for the selected project.
   - **Verified** Ruff, Mypy, and 94 tests passed on macOS with Python 3.12. One Windows-only test was skipped. Fixtures covered isolated client settings, system and user Compose detection, daemon failure classification, and exact project filtering. A local Docker Desktop smoke test confirmed client detection, daemon reachability, and the per-user Compose fallback.
-- [ ] **T-007 · Collect safe Git context** · P1
+- [x] **T-007 · Collect safe Git context** · P1
   - **Dependencies** `T-003`
   - **Requirements** `FR-006`, `NFR-001`, `NFR-002`
   - **Deliverable** Root-local Git repository, branch, commit, and worktree data.
   - **Complete when** Clean, dirty, detached, and unborn cases are covered and unsafe repository configuration cannot trigger hooks, filters, or network operations.
+  - **Verified** On macOS arm64, Ruff, Mypy, the wheel and sdist build, and the live six-collector smoke test passed. Python 3.12 and 3.14 each passed 104 tests with one Windows-only test skipped. Git fixtures covered clean, dirty, detached, and unborn states and rejected unsafe config and metadata before running status.
 
 ### Phase 3. Snapshot and storage engine
 
