@@ -13,7 +13,7 @@ from drift.exceptions import DriftError
 @dataclass(frozen=True)
 class Report:
     result: dict[str, object]
-    text: str
+    human: str | Callable[[], None]
     exit_code: int = 0
 
 
@@ -48,7 +48,9 @@ def emit(command: str, as_json: bool, operation: Callable[[], Report]) -> None:
         raise typer.Exit(1) from None
     if as_json:
         _json(command, "result", report.result)
+    elif isinstance(report.human, str):
+        typer.echo(report.human)
     else:
-        typer.echo(report.text)
+        report.human()
     if report.exit_code:
         raise typer.Exit(report.exit_code)

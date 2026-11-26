@@ -19,6 +19,9 @@ app = typer.Typer(name="drift", add_completion=False, rich_markup_mode=None)
 baseline = typer.Typer(name="baseline", add_completion=False, rich_markup_mode=None)
 app.add_typer(baseline)
 JsonOption = Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")]
+DetailsOption = Annotated[
+    bool, typer.Option("--details", help="Show full hashes and Git context.")
+]
 
 
 @app.callback(invoke_without_command=True)
@@ -160,6 +163,7 @@ def diff(
         str | None, typer.Argument(help="Snapshot ID or unique prefix.")
     ] = None,
     as_json: JsonOption = False,
+    details: DetailsOption = False,
 ) -> None:
     """Compare the live environment with a saved snapshot."""
     if snapshot is not None:
@@ -172,7 +176,7 @@ def diff(
             if snapshot is None
             else resolve_snapshot(root, snapshot)
         )
-        return compare_live(root, config, reference)
+        return compare_live(root, config, reference, details=details)
 
     emit("diff", as_json, run)
 
@@ -200,11 +204,13 @@ def baseline_set(
 
 
 @app.command()
-def verify(ctx: typer.Context, as_json: JsonOption = False) -> None:
+def verify(
+    ctx: typer.Context, as_json: JsonOption = False, details: DetailsOption = False
+) -> None:
     """Verify the live environment against the known-working baseline."""
 
     def run() -> Report:
         root, config = initialized_project(cast(Path | None, ctx.obj))
-        return compare_live(root, config, baseline_snapshot(root))
+        return compare_live(root, config, baseline_snapshot(root), details=details)
 
     emit("verify", as_json, run)

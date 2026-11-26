@@ -4,9 +4,11 @@ import sys
 from time import monotonic, sleep
 from uuid import UUID
 
+import pytest
+from rich.console import Console
 from typer.testing import CliRunner
 
-from drift import snapshots, storage
+from drift import comparison_output, snapshots, storage
 from drift.cli import app
 
 runner = CliRunner()
@@ -241,8 +243,49 @@ def test_verify_match_then_drift_from_full_workflow(tmp_path):
     assert result["reference_id"] == saved["id"]
     assert result["changes"][0]["probe"] == "manifest:requirements.txt"
     assert result["changes"][0]["kind"] == "modified"
-    assert "Drift detected" in invoke(root, "verify", code=3).stdout
+    assert result == payload(root, "verify", "--details", code=3)
+    plain = invoke(root, "verify", code=3).stdout
+    assert "Drift detected" in plain
+    assert len(plain.splitlines()) == 3
+    assert "Known working" in plain
+    before_hash = result["changes"][0]["before"]
+    assert before_hash[:12] + "…" in plain
+    assert before_hash not in plain and "\x1b" not in plain
+    detailed = invoke(root, "diff", "--details", code=3).stdout
+    assert before_hash in detailed
+    assert "Git reference (disabled)" in detailed
     assert project_files(root) == before
+
+
+@pytest.mark.parametrize(
+    ("width", "no_color", "table"),
+    [(100, False, True), (55, False, False), (100, True, False)],
+)
+def test_comparison_terminal_layout(tmp_path, monkeypatch, width, no_color, table):
+    root = prepare(tmp_path, environment=True)
+    saved = take(root, "-m", "[bold]Working[/bold]")
+    payload(root, "baseline", "set", saved["id"])
+    if no_color:
+        monkeypatch.setenv("NO_COLOR", "1")
+    else:
+        monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.setattr(
+        comparison_output,
+        "Console",
+        lambda *, file, force_terminal: Console(
+            file=file, force_terminal=True, width=width, _environ={"TERM": "xterm"}
+        ),
+    )
+    incomplete = invoke(root, "verify", code=4).stdout
+    assert "Comparison incomplete" in incomplete
+    assert "not found" in incomplete
+    (root / "requirements.txt").write_text("example==1\n")
+    output = invoke(root, "verify", code=3).stdout
+    assert ("Before" in output and "Now" in output) is table
+    assert ("\x1b[" in output) is table
+    assert "[bold]Working[/bold]" in output
+    assert "requirements.txt" in output and "Coverage gap" in output
+    assert "Git reference" not in output
 
 
 def test_verify_gaps_and_confirmed_drift_precedence(tmp_path):

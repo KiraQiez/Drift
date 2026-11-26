@@ -78,12 +78,13 @@ For `drift verify`, exit code **0** means a match, **3** means a confirmed chang
 
 ## See it work
 
-Here’s what Drift reports after a line changes in `requirements.txt`. The hashes are shortened for readability.
+Here’s what Drift reports after a line changes in `requirements.txt`. Use `drift diff --details` for full dependency hashes and Git context.
 
 ```text
 $ drift diff
-Drift detected against 94eb33b51c6f41cb81949389e1ab3628
-Modified  dependency.manifest:requirements.txt  44076022… → a5e38db6…
+Drift detected · 1 change · 0 coverage gaps
+Reference 94eb33b51c6f41cb81949389e1ab3628 · Before the change
+Modified  requirements.txt  4407602260ca… → a5e38db64fae…
 ```
 
 <details>

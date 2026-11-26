@@ -14,10 +14,10 @@ drift --version
 drift init [--json]
 drift snapshot [-m MESSAGE | --message MESSAGE] [--json]
 drift history [--json]
-drift diff [SNAPSHOT] [--json]
+drift diff [SNAPSHOT] [--details] [--json]
 drift show SNAPSHOT [--json]
 drift baseline set SNAPSHOT [--json]
-drift verify [--json]
+drift verify [--details] [--json]
 ```
 
 Place the global `--project` option before the command. It accepts an absolute path or a path relative to the working directory and selects an existing directory exactly. Without it, `init` targets the working directory. Other commands search upward for the nearest directory containing `drift.toml`, including the working directory itself, and stop at the filesystem root. A nearer invalid configuration is an error rather than a reason to continue searching. Commands requiring initialized state also validate the local Drift directory.
@@ -40,14 +40,15 @@ Place the global `--project` option before the command. It accepts an absolute p
 
 ## Output
 
-Human reports go to stdout and fatal diagnostics go to stderr. Render IDs, timestamps, statuses, and changes in readable text or tables. Show the affected probe and reason for coverage gaps. Present Git as context. Use plain text on non-TTY streams and render external strings as literal text. No command prompts for input.
+Human reports go to stdout and fatal diagnostics go to stderr. Render IDs, timestamps, statuses, and changes in readable text or tables. Show the affected probe and reason for coverage gaps. Comparison reports lead with the outcome and reference snapshot. They show confirmed changes and coverage gaps. Dependency hashes are shortened by default. Use `--details` for full hashes and Git context. The human report uses a table on a color-capable terminal at least 72 columns wide. Narrow terminals, redirected output, and `NO_COLOR` use plain text. JSON comparisons always include the full values and Git context. Use plain text on non-TTY streams and render external strings as literal text. No command prompts for input.
 
 A plain-text verification report could look like this.
 
 ```text
-Drift detected against a81f23d4901649b1aa477f030a879e44
+Drift detected · 1 change · 1 coverage gap
+Reference a81f23d4901649b1aa477f030a879e44 · Working environment
 Modified  runtime.node  20.18.0 → 22.12.0
-Coverage gap  runtime.java  current probe timed out
+Coverage gap  runtime.java  current: timeout
 ```
 
 `--json` emits one UTF-8 JSON object and a final newline on stdout, with no styling or auxiliary output. A result has `schema_version` equal to `1`, a `command` string using the leaf command name (including `baseline set`), and a `result` object. A handled application error uses `error` in place of `result`, with a stable `code` and a human-readable `message`. CLI usage errors use stderr, with fixed diagnostics for invalid snapshot references and messages. Help and version use their ordinary text. Machine consumers should branch on the exit code or error code.

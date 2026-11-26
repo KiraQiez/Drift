@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Make comparison reports easier to scan and add `--details` for full hashes and Git context.
+
 ## 0.1.0
 
 - Capture local development environment snapshots covering runtimes, dependency manifests, environment declarations, and local tool availability.
