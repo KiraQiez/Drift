@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-The collector engine foundation is complete. The next implementation task is **T-005**. A task is eligible once its listed dependencies are complete.
+The collector engine foundation is complete. The next implementation task is **T-006**. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -49,11 +49,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** The system collector and six runtime probes.
   - **Complete when** Fixtures verify normalized metadata, absent tools, version formats, and supported and unsupported launcher handling.
   - **Verified** Ruff, Mypy, and 78 tests passed on macOS with Python 3.12. One Windows-only test was skipped. Fixtures covered Windows npm layout checks, runtime failure classification, and normalized versions.
-- [ ] **T-005 · Collect environment names and dependency checksums** · P0
+- [x] **T-005 · Collect environment names and dependency checksums** · P0
   - **Dependencies** `T-002`, `T-003`
   - **Requirements** `FR-004`, `FR-005`, `NFR-001`, `NFR-003`, `NFR-007`
   - **Deliverable** Name-only collection, a declaration scanner, and bounded checksum probes.
   - **Complete when** Value-only edits leave results stable, file and active names stay distinct, and checksums and failures match fixtures.
+  - **Verified** Ruff, Mypy, and 86 tests passed on macOS with Python 3.12. One Windows-only test was skipped. Fixtures covered value-only edits, multiline declarations, missing and oversized files, symlinks, and a replaced manifest.
 - [ ] **T-006 · Observe local Docker and scoped services** · P1
   - **Dependencies** `T-003`
   - **Requirements** `FR-003`, `NFR-001`, `NFR-002`, `NFR-005`
