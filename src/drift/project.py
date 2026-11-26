@@ -70,3 +70,13 @@ def initialized_project(project: Path | None) -> tuple[Path, ProjectConfig]:
             "Drift project state is incomplete. Run drift init."
         ) from None
     return root, config
+
+
+def prepare_baseline_project(project: Path | None) -> tuple[Path, ProjectConfig]:
+    """Find the existing project or prepare the selected directory for a baseline."""
+    try:
+        root = resolve_project_root(project)
+    except ProjectNotInitializedError:
+        root = resolve_project_root(project, search_parents=False)
+    initialize(root)
+    return initialized_project(root)

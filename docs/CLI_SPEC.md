@@ -12,7 +12,7 @@ drift --help
 drift --version
 
 drift init [--json]
-drift snapshot [-m MESSAGE | --message MESSAGE] [--json]
+drift snapshot [-m MESSAGE | --message MESSAGE] [--baseline] [--json]
 drift history [--json]
 drift diff [SNAPSHOT] [--details] [--json]
 drift show SNAPSHOT [--json]
@@ -21,6 +21,8 @@ drift verify [--details] [--json]
 ```
 
 Place the global `--project` option before the command. It accepts an absolute path or a path relative to the working directory and selects an existing directory exactly. Without it, `init` targets the working directory. Other commands search upward for the nearest directory containing `drift.toml`, including the working directory itself, and stop at the filesystem root. A nearer invalid configuration is an error rather than a reason to continue searching. Commands requiring initialized state also validate the local Drift directory.
+
+With `snapshot --baseline`, Drift uses the same project discovery. If it finds no `drift.toml` in the directory or its ancestors, it initializes the current directory. An explicit `--project` always uses the selected directory. Existing configuration is preserved.
 
 `SNAPSHOT` is a full canonical ID or an unambiguous prefix of six or more lowercase hex characters. Resolve against canonical storage names and reject ambiguous prefixes. Use the full ID when automating. The [data model](DATA_MODEL.md) defines ID format, reference resolution, and storage recovery.
 
@@ -31,7 +33,7 @@ Place the global `--project` option before the command. It accepts an absolute p
 | Command | Behavior and acceptance |
 | --- | --- |
 | `init` | Create the project configuration and local state described in the [data model](DATA_MODEL.md#storage-and-recovery). Preserve an existing valid configuration byte for byte. Repeating successful initialization performs no writes. An interrupted initialization can create missing state on retry, subject to existing state validation. An invalid configuration or unsafe path fails with guidance. |
-| `snapshot` | Capture live observations, assign an ID and UTC timestamp, and publish one immutable snapshot. Accept one optional literal message with 1–256 characters and no control characters. Save partial or failed collection results with their statuses. Return success once the snapshot is saved. Storage errors return exit `1`. |
+| `snapshot` | Capture live observations, assign an ID and UTC timestamp, and publish one immutable snapshot. Accept one optional literal message with 1–256 characters and no control characters. Save partial or failed collection results with their statuses. With `--baseline`, initialize the selected project if needed and set the baseline after saving. Running it again advances the baseline and keeps previous snapshots in history. If replacement fails before the new pointer is published, the old baseline stays in place and the new snapshot is available through `drift history`. Storage errors return exit `1`. |
 | `history` | List summaries oldest first, using ID to break timestamp ties. Empty history is a successful empty result. If a canonical entry is unreadable, show valid entries, identify each damaged entry, and exit `4`. |
 | `diff` | Resolve a specified reference or select the newest snapshot by the same ordering used for history. Collect current observations without creating a snapshot. Return changes, coverage gaps, and Git context. Missing history, an invalid selected snapshot, or unreadable history during automatic latest selection is an operational error. |
 | `show` | Return the selected snapshot with its full stored metadata, scope, observations, and statuses. Unknown, ambiguous, damaged, and unsupported references receive distinct application errors. |
@@ -56,7 +58,7 @@ Coverage gap  runtime.java  current: timeout
 | Command | Fields in `result` |
 | --- | --- |
 | `init` | `created` is true if the invocation created managed project state or configuration, false if the project was already initialized. |
-| `snapshot` | `snapshot` is a snapshot summary. |
+| `snapshot` | `snapshot` is a snapshot summary. `--baseline` also returns `baseline_id`, the full ID of the newly saved snapshot. |
 | `history` | `snapshots` is an array of summaries. `damaged` is an array of objects with `id` and `code`, sorted by ID. |
 | `show` | `snapshot` is the full v1 snapshot. |
 | `baseline set` | `baseline_id` is the full selected ID. |
@@ -103,7 +105,7 @@ Example application error.
   "command": "verify",
   "error": {
     "code": "baseline_missing",
-    "message": "Set a baseline with drift baseline set SNAPSHOT."
+    "message": "Save a baseline with drift snapshot --baseline or select a saved snapshot with drift baseline set SNAPSHOT."
   }
 }
 ```
@@ -123,15 +125,12 @@ Report `project_not_initialized` when no project configuration can be located, `
 ## Examples
 
 ```sh
-drift --project ./my-project init
 cd ./my-project
-drift snapshot -m "Working environment"
+drift snapshot --baseline -m "Working environment"
+drift verify
+drift diff --details
 drift history --json
 drift show a81f23
-drift diff
-drift diff a81f23 --json
-drift baseline set a81f23
-drift verify
 ```
 
 The sample prefix stands for a unique ID prefix in the local history.

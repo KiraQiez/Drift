@@ -45,15 +45,17 @@ def test_installed_console_workflow(tmp_path):
         payload("history", code=1, project_options=("--project", "."))["code"]
         == "project_not_initialized"
     )
-    assert payload("init", project_options=("--project", "..")) == {"created": True}
-    assert not (child / "drift.toml").exists()
     (project / "drift.toml").write_text(
         "schema_version = 1\n[collectors]\nsystem=false\nruntime=false\ndocker=false\n"
         "environment=false\ngit=false\n",
         encoding="utf-8",
     )
     manifest.write_text("fixture==1\n", encoding="utf-8")
-    saved = payload("snapshot", "-m", "Working [fixture]")["snapshot"]
+    baseline = payload("snapshot", "--baseline", "-m", "Working [fixture]")
+    saved = baseline["snapshot"]
+    assert baseline == {"snapshot": saved, "baseline_id": saved["id"]}
+    assert not (child / "drift.toml").exists()
+    assert payload("init", project_options=("--project", "..")) == {"created": False}
     assert set(saved) == {"id", "created_at", "message", "collector_statuses"}
     assert payload("history") == {"snapshots": [saved], "damaged": []}
     shown = payload("show", saved["id"][:8])["snapshot"]

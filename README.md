@@ -42,29 +42,21 @@ uv and pipx work on macOS, Linux, and Windows. Drift requires Python 3.12 or new
 
 ## Use Drift in a project
 
-### Save a snapshot while the project works
+The commands below use the [staging build](#run-from-source). For the published Homebrew and PyPI packages, see the [v0.1.0 workflow](https://github.com/KiraQiez/Drift/blob/v0.1.0/README.md#workflow).
 
-Open a terminal in your project’s root directory and run these commands.
+Open a terminal in a working project and save its baseline.
 
 ```sh
-drift init
-drift snapshot -m "Working environment"
+drift snapshot --baseline -m "Working environment"
 ```
 
-`drift init` creates `drift.toml` and the local state directory. The snapshot command prints `Saved snapshot` followed by an ID. Copy that ID, or retrieve it later with `drift history`.
-
-### Set that snapshot as your baseline
-
-Replace `SNAPSHOT_ID` with the ID you copied.
+This sets up local Drift files if needed, captures the current environment, and makes that snapshot the baseline. When a runtime changes, a lockfile is updated, or a command stops working, run this from the same project.
 
 ```sh
-drift baseline set SNAPSHOT_ID
 drift verify
 ```
 
-### Check again after something changes
-
-Run `drift verify` from the same project after an update or when a command stops working. It checks the saved baseline even if you’ve taken more snapshots in the meantime.
+After an intentional change, rerun `drift snapshot --baseline` to adopt the new setup. Earlier snapshots remain in `drift history`. To select an earlier baseline, use `drift baseline set SNAPSHOT_ID`.
 
 | When you want to… | Run |
 | --- | --- |
@@ -127,7 +119,14 @@ uv sync --locked
 uv run --locked drift --help
 ```
 
-Use `uv run --locked drift` in place of `drift` in the examples. Run `just check` for lint, type checks, and tests if you have Just installed.
+From the Drift checkout, replace `/path/to/project` with your project’s directory.
+
+```sh
+uv run --locked drift --project /path/to/project snapshot --baseline
+uv run --locked drift --project /path/to/project verify
+```
+
+Run `just check` for lint, type checks, and tests if you have Just installed.
 
 ## Documentation
 

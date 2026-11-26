@@ -39,7 +39,9 @@ def set_baseline(root: Path, reference: str) -> str:
 def baseline_snapshot(root: Path) -> Snapshot:
     baseline_id = baseline_metadata(root).baseline_id
     if baseline_id is None:
-        raise BaselineMissingError("Set a baseline with drift baseline set SNAPSHOT.")
+        raise BaselineMissingError(
+            "Save a baseline with drift snapshot --baseline or select a saved snapshot with drift baseline set SNAPSHOT."
+        )
     try:
         return read_snapshot(root, baseline_id)
     except DriftError:

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add `drift snapshot --baseline` to set up a project and save its baseline in one command.
 - Make comparison reports easier to scan and add `--details` for full hashes and Git context.
 
 ## 0.1.0

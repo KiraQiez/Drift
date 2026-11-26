@@ -51,6 +51,70 @@ def take(root, *args):
     return payload(root, "snapshot", *args)["snapshot"]
 
 
+def test_baseline_mode_initializes_current_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert runner.invoke(app, ["snapshot"]).exit_code == 1
+    result = runner.invoke(app, ["snapshot", "--baseline", "-m", "Working"])
+    assert result.exit_code == 0, (result.output, result.exception)
+    assert "Run drift verify" in result.stdout
+    assert (tmp_path / "drift.toml").is_file()
+    record = payload(tmp_path, "history")["snapshots"][0]
+    assert record["message"] == "Working"
+    assert storage.read_metadata(tmp_path).baseline_id == record["id"]
+
+
+def test_baseline_mode_uses_parent_or_explicit_project(tmp_path, monkeypatch):
+    root = prepare(tmp_path)
+    child = root / "nested"
+    child.mkdir()
+    original_config = (root / "drift.toml").read_bytes()
+    monkeypatch.chdir(child)
+
+    result = runner.invoke(app, ["snapshot", "--baseline", "--json"])
+    assert result.exit_code == 0, (result.output, result.exception)
+    saved = json.loads(result.stdout)["result"]
+    assert saved["baseline_id"] == saved["snapshot"]["id"]
+    assert not (child / "drift.toml").exists()
+    assert (root / "drift.toml").read_bytes() == original_config
+    assert payload(root, "verify")["reference_id"] == saved["baseline_id"]
+
+    explicit = payload(child, "snapshot", "--baseline")
+    assert (child / "drift.toml").is_file()
+    assert storage.read_metadata(child).baseline_id == explicit["baseline_id"]
+    assert storage.read_metadata(root).baseline_id == saved["baseline_id"]
+
+
+def test_baseline_mode_refreshes_the_pointer_and_keeps_history(tmp_path):
+    root = prepare(tmp_path)
+    first = payload(root, "snapshot", "--baseline")
+    (root / "requirements.txt").write_text("example==1\n", encoding="utf-8")
+    second = payload(root, "snapshot", "--baseline")
+    assert second["snapshot"]["id"] == second["baseline_id"]
+    assert second["baseline_id"] != first["baseline_id"]
+    assert payload(root, "verify")["reference_id"] == second["baseline_id"]
+    assert payload(root, "history")["snapshots"] == [
+        first["snapshot"],
+        second["snapshot"],
+    ]
+    assert set(payload(root, "snapshot")) == {"snapshot"}
+    assert storage.read_metadata(root).baseline_id == second["baseline_id"]
+
+
+def test_baseline_mode_keeps_the_snapshot_when_replacement_fails(tmp_path, monkeypatch):
+    root = prepare(tmp_path)
+    first = payload(root, "snapshot", "--baseline")
+
+    def fail(*args, **kwargs):
+        raise OSError("sensitive failure")
+
+    monkeypatch.setattr(storage.os, "replace", fail)
+    error = payload(root, "snapshot", "--baseline", code=1)
+    assert error["code"] == "storage_error"
+    assert "sensitive failure" not in error["message"]
+    assert payload(root, "verify")["reference_id"] == first["baseline_id"]
+    assert len(payload(root, "history")["snapshots"]) == 2
+
+
 def test_snapshot_preserves_partial_results_and_retries_collision(
     tmp_path, monkeypatch
 ):

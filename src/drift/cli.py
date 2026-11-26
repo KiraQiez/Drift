@@ -11,7 +11,7 @@ from drift.baseline import baseline_snapshot, set_baseline
 from drift.live_comparison import compare_live
 from drift.models import Snapshot, is_snapshot_reference, valid_message
 from drift.output import Report, emit, literal
-from drift.project import initialize, initialized_project
+from drift.project import initialize, initialized_project, prepare_baseline_project
 from drift.snapshots import capture_snapshot, latest_snapshot, list_history, summary
 from drift.storage import resolve_snapshot
 
@@ -66,6 +66,10 @@ def snapshot(
     message: Annotated[
         str | None, typer.Option("--message", "-m", help="Label this snapshot.")
     ] = None,
+    as_baseline: Annotated[
+        bool,
+        typer.Option("--baseline", help="Initialize if needed and set the baseline."),
+    ] = False,
     as_json: JsonOption = False,
 ) -> None:
     """Capture the current environment."""
@@ -75,16 +79,20 @@ def snapshot(
         )
 
     def run() -> Report:
-        root, config = initialized_project(cast(Path | None, ctx.obj))
+        project = cast(Path | None, ctx.obj)
+        prepare = prepare_baseline_project if as_baseline else initialized_project
+        root, config = prepare(project)
         saved = capture_snapshot(root, config, message)
+        result: dict[str, object] = {"snapshot": summary(saved)}
         note = f" · {literal(saved.message)}" if saved.message is not None else ""
         statuses = ", ".join(
             f"{name} {result.status}" for name, result in saved.collectors.items()
         )
-        return Report(
-            {"snapshot": summary(saved)},
-            f"Saved snapshot {saved.id} · {saved.created_at}{note}\n{statuses}",
-        )
+        text = f"Saved snapshot {saved.id} · {saved.created_at}{note}\n{statuses}"
+        if as_baseline:
+            result["baseline_id"] = set_baseline(root, saved.id)
+            text += "\nBaseline set. Run drift verify to check for changes."
+        return Report(result, text)
 
     emit("snapshot", as_json, run)
 
