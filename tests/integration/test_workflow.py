@@ -133,3 +133,30 @@ def test_show_validates_reference_and_renders_literal_data(tmp_path):
     malformed = invoke(root, "show", "../secret", "--json", code=2)
     assert not malformed.stdout
     assert "../secret" not in malformed.stderr
+
+
+def test_diff_uses_latest_or_explicit_reference_read_only(tmp_path):
+    root = prepare(tmp_path)
+    assert payload(root, "diff", code=1)["code"] == "history_empty"
+    first = take(root)
+    (root / "requirements.txt").write_text("sample==1\n")
+    second = take(root)
+    before = project_files(root)
+    latest = payload(root, "diff")
+    assert latest["reference_id"] == second["id"]
+    assert latest["outcome"] == "match"
+    old = payload(root, "diff", first["id"][:8], code=3)
+    assert old["reference_id"] == first["id"]
+    assert old["outcome"] == "drift"
+    assert old["changes"][0]["probe"] == "manifest:requirements.txt"
+    assert old["changes"][0]["kind"] == "added"
+    assert project_files(root) == before
+
+
+def test_damaged_entry_blocks_automatic_diff_only(tmp_path):
+    root = prepare(tmp_path)
+    first, damaged = take(root), take(root)
+    (root / ".drift/snapshots" / f"{damaged['id']}.json").write_text("damaged")
+    assert payload(root, "diff", code=1)["code"] == "history_incomplete"
+    assert payload(root, "diff", first["id"])["outcome"] == "match"
+    assert payload(root, "diff", damaged["id"], code=1)["code"] == "invalid_snapshot"

@@ -103,11 +103,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** The pure comparator and typed change and gap records.
   - **Complete when** Change types, scope mismatches, confirmed absence, unknown observations, and Git context follow the data contract.
   - **Verified** Ruff, Mypy, and 131 tests passed on macOS with Python 3.12. Fixtures covered known absence, deterministic name and service changes, scope gaps, Git context, and drift precedence.
-- [ ] **T-013 · Expose live comparison** · P0
+- [x] **T-013 · Expose live comparison** · P0
   - **Dependencies** `T-010`, `T-011`, `T-012`
   - **Requirements** `FR-009`, `FR-011`, `NFR-007`
   - **Deliverable** The `diff` command with reports and exit codes.
   - **Complete when** Default latest and explicit reference paths work, damage blocks automatic selection, and comparisons leave storage untouched.
+  - **Verified** Ruff, Mypy, and 133 tests passed on macOS with Python 3.12. CLI fixtures verified empty and damaged history, explicit and latest references, exit status, and read-only comparison.
 
 ### Phase 5. Baseline and verification
 

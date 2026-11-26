@@ -10,6 +10,8 @@ from drift.collectors.engine import run_collectors
 from drift.collectors.registry import build_registry
 from drift.config import ProjectConfig
 from drift.exceptions import (
+    HistoryEmptyError,
+    HistoryIncompleteError,
     InvalidSnapshotError,
     SnapshotNotFoundError,
     StorageError,
@@ -94,3 +96,14 @@ def list_history(root: Path) -> History:
         ) as error:
             damaged.append({"id": snapshot_id, "code": error.code})
     return History(sorted(readable, key=_chronological), damaged)
+
+
+def latest_snapshot(root: Path) -> Snapshot:
+    history = list_history(root)
+    if history.damaged:
+        raise HistoryIncompleteError(
+            "History contains damaged entries. Run drift history or select a snapshot explicitly."
+        )
+    if not history.snapshots:
+        raise HistoryEmptyError("There are no snapshots. Run drift snapshot first.")
+    return history.snapshots[-1]

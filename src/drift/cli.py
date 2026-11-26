@@ -7,10 +7,11 @@ from typing import Annotated, cast
 
 import typer
 
+from drift.live_comparison import compare_live
 from drift.models import Snapshot, is_snapshot_reference, valid_message
 from drift.output import Report, emit, literal
 from drift.project import initialize, initialized_project
-from drift.snapshots import capture_snapshot, list_history, summary
+from drift.snapshots import capture_snapshot, latest_snapshot, list_history, summary
 from drift.storage import resolve_snapshot
 
 app = typer.Typer(name="drift", add_completion=False)
@@ -147,3 +148,27 @@ def show(ctx: typer.Context, snapshot: str, as_json: JsonOption = False) -> None
         return Report({"snapshot": record.model_dump()}, "\n".join(lines))
 
     emit("show", as_json, run)
+
+
+@app.command()
+def diff(
+    ctx: typer.Context,
+    snapshot: Annotated[
+        str | None, typer.Argument(help="Snapshot ID or unique prefix.")
+    ] = None,
+    as_json: JsonOption = False,
+) -> None:
+    """Compare the live environment with a saved snapshot."""
+    if snapshot is not None:
+        _validate_reference(snapshot)
+
+    def run() -> Report:
+        root, config = initialized_project(cast(Path | None, ctx.obj))
+        reference = (
+            latest_snapshot(root)
+            if snapshot is None
+            else resolve_snapshot(root, snapshot)
+        )
+        return compare_live(root, config, reference)
+
+    emit("diff", as_json, run)

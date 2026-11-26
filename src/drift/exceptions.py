@@ -43,3 +43,11 @@ class SnapshotNotFoundError(DriftError):
 
 class AmbiguousSnapshotError(DriftError):
     code = "ambiguous_snapshot"
+
+
+class HistoryEmptyError(DriftError):
+    code = "history_empty"
+
+
+class HistoryIncompleteError(DriftError):
+    code = "history_incomplete"
