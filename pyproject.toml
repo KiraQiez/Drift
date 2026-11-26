@@ -25,6 +25,9 @@ Issues = "https://github.com/KiraQiez/Drift/issues"
 drift = "drift.cli:app"
 
 [dependency-groups]
+build = [
+    "hatchling>=1.27,<2",
+]
 dev = [
     "mypy>=1.15,<3",
     "packaging>=25,<27",

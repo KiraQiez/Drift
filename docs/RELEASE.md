@@ -24,7 +24,7 @@ These are planned installations from the project's own tap and PyPI package. Eac
 
 ## Artifacts and versioning
 
-The release packaging workflow builds one wheel and one sdist with Hatchling through `uv build`. It checks archive contents, metadata, the license, and the console entry point, then uploads both distributions and `SHA256SUMS` as the `distributions` workflow artifact. Every install job verifies those checksums before running the installed console contract.
+The release packaging workflow builds one wheel and one sdist with Hatchling through `uv build` using hashed constraints from the locked build group. It checks archive contents, metadata, the license, and the console entry point, then uploads both distributions and `SHA256SUMS` as the `distributions` workflow artifact. Every install job verifies those checksums before running the installed console contract.
 
 | Installer | Artifact | Smoke coverage |
 | --- | --- | --- |
@@ -34,7 +34,9 @@ The release packaging workflow builds one wheel and one sdist with Hatchling thr
 To reproduce the artifact checks locally, use a fresh output directory.
 
 ```sh
-uv build --no-create-gitignore --out-dir release-dist
+mkdir -p build
+uv export --locked --only-group build --no-emit-project --output-file build/build-constraints.txt
+uv build --no-create-gitignore --build-constraints build/build-constraints.txt --require-hashes --out-dir release-dist
 uv run --locked python scripts/check_distributions.py release-dist
 uv run --locked python scripts/check_distributions.py release-dist --verify
 uv run --locked python scripts/smoke_distribution.py release-dist uv
@@ -51,6 +53,8 @@ flowchart LR
     Ref --> Build["Validate ref and changelog, then build"]
     Build --> Validate["Check hashes and smoke-install"]
     Validate --> Gate{"Approved release tag and PyPI environment"}
+    Build --> Brew["Install candidate formula on macOS"]
+    Brew --> Gate
     Quality --> Gate
     Gate --> PyPI["Publish to PyPI with a Trusted Publisher"]
     PyPI --> GitHub["Attach artifacts and hashes to GitHub Release"]
@@ -71,7 +75,23 @@ Before the first approved release, configure these publication controls.
 
 Only the PyPI job can request an OIDC token. After that job succeeds, the GitHub Release job can write release assets. Both jobs check the hashes against the build's record. [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) · [PyPI security model](https://docs.pypi.org/trusted-publishers/security-model/)
 
-Publish release notes, the validated wheel and sdist, and checksums on GitHub Releases. After PyPI publication, the tap formula uses the published sdist and its digest. Pin a supported versioned Homebrew Python and use its Python virtual environment helper. Generate transitive runtime dependency resources with `brew update-python-resources`, review each resource version and source checksum, and declare the build resources required by the backend where necessary. Run formula validation, installation, and the formula test on a supported macOS runner before merging the tap update. [Homebrew language-specific formulae](https://docs.brew.sh/Language-Specific-Formulae)
+## Homebrew tap
+
+The [formula template](../packaging/homebrew/drift.rb.in) uses Homebrew's Python 3.14 virtual environment helper. The renderer selects compatible PyPI wheels for Apple Silicon and Intel from the locked runtime and Hatchling build dependencies. Homebrew checks each resource's SHA-256 hash before using it. The formula builds the Drift sdist with those resources and installs it without resolving packages from the network. [Homebrew language-specific formulae](https://docs.brew.sh/Language-Specific-Formulae)
+
+The release workflow renders a candidate from the validated sdist and a temporary local tap. It loads the formula, installs it, runs `brew test`, and runs the same fixture-based console contract as the Python installer jobs. The candidate uses the local archive URL from that workflow run.
+
+For a tap update, use the release tag's checkout and the validated files from its workflow. Refresh the locked dependencies with `uv lock` when the package requirements change. Keep the `build` group aligned with `[build-system].requires`. After PyPI publication, set `PYPI_SDIST_URL` to the published source file URL, verify the downloaded source digest against `SHA256SUMS`, and render the formula.
+
+```sh
+uv run --locked python scripts/check_distributions.py release-dist --verify
+uv export --locked --no-dev --group build --no-emit-project --format pylock.toml --output-file build/pylock.toml
+mkdir -p path/to/homebrew-tap/Formula
+uv run --locked python scripts/render_homebrew.py release-dist/*.tar.gz build/pylock.toml \
+  path/to/homebrew-tap/Formula/drift.rb --source-url "$PYPI_SDIST_URL"
+```
+
+Review the formula's source and dependency changes and exercise the tap update on macOS before merging it into `KiraQiez/homebrew-tap`.
 
 ## Publication validation and rollback
 

@@ -34,8 +34,8 @@ jobs:
           uv run --locked python scripts/release_notes.py "$GITHUB_REF" release-notes.md
       - name: Build and validate distributions
         run: |
-          uv lock --check
-          uv build --no-create-gitignore --out-dir release-dist
+          uv export --locked --only-group build --no-emit-project --output-file "$RUNNER_TEMP/build-constraints.txt" > /dev/null
+          uv build --no-create-gitignore --build-constraints "$RUNNER_TEMP/build-constraints.txt" --require-hashes --out-dir release-dist
           uv run --locked python scripts/check_distributions.py release-dist
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
@@ -77,12 +77,57 @@ jobs:
           uv run --locked python scripts/smoke_distribution.py release-dist uv
           uv run --locked python scripts/smoke_distribution.py release-dist pipx
 
+  homebrew:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-15-intel]
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      UV_PYTHON: "3.12"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.9"
+      - uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: distributions
+          path: release-dist/
+      - name: Install and test the candidate tap
+        shell: bash
+        run: |
+          uv run --locked python scripts/check_distributions.py release-dist --verify
+          tap="$RUNNER_TEMP/drift-tap"
+          lock="$RUNNER_TEMP/pylock.toml"
+          mkdir -p "$tap/Formula"
+          uv export --locked --no-dev --group build --no-emit-project --format pylock.toml --output-file "$lock" > /dev/null
+          uv run --locked python scripts/render_homebrew.py release-dist/*.tar.gz "$lock" "$tap/Formula/drift.rb"
+          git -C "$tap" init --quiet
+          git -C "$tap" add Formula/drift.rb
+          git -C "$tap" -c user.name="Drift CI" -c user.email="drift-ci@example.invalid" commit -qm "Add candidate formula"
+          formula=drift-ci/tap/drift
+          brew tap --custom-remote drift-ci/tap "file://$tap"
+          if brew command trust > /dev/null 2>&1; then
+            brew trust --formula "$formula"
+          fi
+          brew readall --syntax drift-ci/tap
+          brew install --build-from-source "$formula"
+          brew test "$formula"
+          DRIFT_TEST_EXECUTABLE="$(brew --prefix "$formula")/bin/drift" \
+            uv run --locked pytest -q tests/integration/test_console_contract.py
+
   publish-pypi:
     if: >-
       github.repository == 'KiraQiez/Drift' &&
       startsWith(github.ref, 'refs/tags/v') &&
       vars.DRIFT_RELEASE_ENABLED == 'true'
-    needs: [quality, install]
+    needs: [quality, install, homebrew]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:

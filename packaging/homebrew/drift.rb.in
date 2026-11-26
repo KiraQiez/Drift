@@ -1,0 +1,33 @@
+class Drift < Formula
+  include Language::Python::Virtualenv
+
+  desc $description
+  homepage $homepage
+  url $source_url
+  version $version
+  sha256 $checksum
+  license $license
+
+  depends_on :macos
+  depends_on "python@$python"
+
+$resources
+
+  def install
+    ENV["PIP_NO_INDEX"] = "1"
+    venv = virtualenv_create(libexec, "python$python", system_site_packages: false)
+    resources.each do |resource|
+      resource.stage do
+        venv.pip_install(Dir["*.whl"].fetch(0), build_isolation: false)
+      end
+    end
+    venv.pip_install_and_link(buildpath, build_isolation: false)
+  end
+
+  test do
+    assert_equal "drift #{version}", shell_output("#{bin}/drift --version").strip
+    assert_match "snapshot", shell_output("#{bin}/drift --help")
+    system bin/"drift", "init"
+    assert_path_exists testpath/"drift.toml"
+  end
+end
