@@ -1,6 +1,6 @@
 # Roadmap and implementation checklist
 
-Release preparation through **T-022** is verified. **T-023** is pending approval. A task is eligible once its listed dependencies are complete.
+The first public release, **v0.1.0**, completes the implementation checklist. A task is eligible once its listed dependencies are complete.
 
 ## Milestones
 
@@ -172,8 +172,9 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** The formula, dependency resource update process, and tap validation.
   - **Complete when** A candidate formula can install and run the CLI smoke test on a supported macOS runner.
   - **Verified** The temporary tap installed the verified sdist on Apple Silicon and Intel macOS runners. Both passed formula loading, Brew tests, and the fixture-based CLI contract. [Homebrew rehearsal](https://github.com/KiraQiez/Drift/actions/runs/45791262149)
-- [ ] **T-023 · Publish and verify the first approved release** · P1
+- [x] **T-023 · Publish and verify the first approved release** · P1
   - **Dependencies** `T-021`, `T-022`
   - **Requirements** `FR-012`
   - **Deliverable** An approved tag, GitHub Release, PyPI package, and tap formula.
   - **Complete when** The published artifacts match recorded hashes and clean installs through uv tool, pipx, and Homebrew pass.
+  - **Verified** The wheel and source distribution downloaded from PyPI and GitHub matched the tagged build's SHA-256 checksums. Fresh uv tool and pipx installs passed the CLI contract. The public tap passed `brew test` and the CLI contract on Apple Silicon and Intel macOS. [Release run](https://github.com/KiraQiez/Drift/actions/runs/45798929695) · [Public tap checks](https://github.com/KiraQiez/homebrew-tap/actions/runs/45800138887)

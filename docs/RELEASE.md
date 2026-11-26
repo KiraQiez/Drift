@@ -10,9 +10,7 @@
 | GitHub repository | `KiraQiez/Drift` |
 | Homebrew tap and formula | `KiraQiez/homebrew-tap` and `drift` |
 
-The `drift` PyPI name belongs to an existing project. The Phase 7 collision checks found no PyPI project under the normalized `drift-dev-env` name or Homebrew core formula named `drift`. The repository maintainer controls the `KiraQiez` GitHub namespace. The distribution name and tap path will be claimed as part of first-release setup. [Existing PyPI project](https://pypi.org/project/drift/)
-
-Development builds use version `0.1.0.dev0`. The first public release targets `0.1.0`.
+Version 0.1.0 is the first verified public release. The GitHub Release includes the wheel, source distribution, and SHA-256 checksums. The files downloaded from PyPI and GitHub matched the tagged build. [PyPI 0.1.0](https://pypi.org/project/drift-dev-env/0.1.0/) · [GitHub Release v0.1.0](https://github.com/KiraQiez/Drift/releases/tag/v0.1.0)
 
 ```sh
 brew install KiraQiez/tap/drift
@@ -20,11 +18,11 @@ uv tool install drift-dev-env
 pipx install drift-dev-env
 ```
 
-These are planned installations from the project's own tap and PyPI package. Each installer manages the application's Python environment.
+Each installer manages the application's Python environment. The public tap runs install and CLI checks on Apple Silicon and Intel macOS. [Homebrew tap](https://github.com/KiraQiez/homebrew-tap)
 
 ## Artifacts and versioning
 
-The release packaging workflow builds one wheel and one sdist with Hatchling through `uv build` using hashed constraints from the locked build group. It checks archive contents, metadata, the license, and the console entry point, then uploads both distributions and `SHA256SUMS` as the `distributions` workflow artifact. Every install job verifies those checksums before running the installed console contract.
+The release packaging workflow builds one wheel and one sdist with Hatchling through `uv build` using hashed constraints from the locked build group. It checks archive contents, metadata, the license, and the console entry point, then uploads both distributions and `SHA256SUMS` as the `distributions` workflow artifact. Twine validates publishing metadata before the upload. Every install job verifies those checksums before running the installed console contract.
 
 | Installer | Artifact | Smoke coverage |
 | --- | --- | --- |
@@ -65,13 +63,13 @@ flowchart LR
 
 The [release workflow](../.github/workflows/release.yml) runs full quality and packaging checks on each `staging` push and version-tag push. Staging uses the `## Unreleased` changelog section and stops after validation. A release tag must point to a commit reachable from `main` and match the package version. The workflow extracts the single nonempty `## MAJOR.MINOR.PATCH` section as the GitHub release notes.
 
-Before the first approved release, configure these publication controls.
+The first release used these publication controls.
 
 | Control | Setting |
 | --- | --- |
 | GitHub environment | `pypi`, with release tag access and maintainer approval |
-| PyPI pending Trusted Publisher | Project `drift-dev-env`, owner `KiraQiez`, repository `Drift`, workflow `release.yml`, environment `pypi` |
-| GitHub repository variable | Set `DRIFT_RELEASE_ENABLED` to `true` once the release setup and approval are in place |
+| PyPI Trusted Publisher | Project `drift-dev-env`, owner `KiraQiez`, repository `Drift`, workflow `release.yml`, environment `pypi` |
+| GitHub repository variable | `DRIFT_RELEASE_ENABLED=true` enables publishing for validated version tags |
 
 Only the PyPI job can request an OIDC token. After that job succeeds, the GitHub Release job can write release assets. Both jobs check the hashes against the build's record. [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) · [PyPI security model](https://docs.pypi.org/trusted-publishers/security-model/)
 

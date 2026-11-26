@@ -2,7 +2,7 @@
 
 **Your code hasn't changed. Your environment has.**
 
-Drift (Development Environment Version Control) is a developer CLI in early development. Git tracks changes to your source code. Drift is designed to help you find changes in the environment around it, such as a new runtime version, a changed lockfile, or a Docker service that stopped.
+Drift (Development Environment Version Control) is a developer CLI. Git tracks changes to your source code. Drift is designed to help you find changes in the environment around it, such as a new runtime version, a changed lockfile, or a Docker service that stopped.
 
 Drift captures local snapshots, shows what changed, and verifies the current environment against a known-working baseline. It tracks environment variable names and file declarations while leaving values out of snapshots and reports.
 
@@ -19,15 +19,17 @@ drift verify --json
 
 Use the snapshot ID or a unique prefix from your own history when setting a baseline. A verification exits with code `0` for a match, `3` for confirmed drift, and `4` for incomplete coverage. See the [CLI specification](docs/CLI_SPEC.md) for the full contract.
 
-## Installation plans
+## Installation
 
-These commands illustrate the planned installation methods after the first public release.
+Choose one installer. Homebrew is available on macOS.
 
 ```sh
 brew install KiraQiez/tap/drift
 uv tool install drift-dev-env
 pipx install drift-dev-env
 ```
+
+Run `drift --version` to verify the installation.
 
 ## Development
 
