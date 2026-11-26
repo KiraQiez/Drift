@@ -1,6 +1,7 @@
 import json
 import subprocess
 import sys
+from time import monotonic, sleep
 from uuid import UUID
 
 from typer.testing import CliRunner
@@ -160,3 +161,57 @@ def test_damaged_entry_blocks_automatic_diff_only(tmp_path):
     assert payload(root, "diff", code=1)["code"] == "history_incomplete"
     assert payload(root, "diff", first["id"])["outcome"] == "match"
     assert payload(root, "diff", damaged["id"], code=1)["code"] == "invalid_snapshot"
+
+
+def test_baseline_help_and_setting_partial_snapshot_without_rewriting(tmp_path):
+    assert "set" in invoke(tmp_path, "baseline").stdout
+    assert "set" in invoke(tmp_path, "baseline", "--help").stdout
+    root = prepare(tmp_path, environment=True)
+    saved = take(root)
+    assert saved["collector_statuses"]["environment"] == "partial"
+    assert payload(root, "baseline", "set", saved["id"][:8]) == {
+        "baseline_id": saved["id"]
+    }
+    before = project_files(root)
+    assert payload(root, "baseline", "set", saved["id"]) == {"baseline_id": saved["id"]}
+    missing = "a81f23d4901649b1aa477f030a879e44"
+    assert (
+        payload(root, "baseline", "set", missing, code=1)["code"]
+        == "snapshot_not_found"
+    )
+    assert project_files(root) == before
+
+
+def test_failed_baseline_publication_preserves_pointer(tmp_path, monkeypatch):
+    root = prepare(tmp_path)
+    before, after = take(root), take(root)
+    payload(root, "baseline", "set", before["id"])
+    initial_state = project_files(root)
+
+    def fail(*args, **kwargs):
+        raise OSError("sensitive failure")
+
+    monkeypatch.setattr(storage.os, "replace", fail)
+    assert (
+        payload(root, "baseline", "set", after["id"], code=1)["code"] == "storage_error"
+    )
+    assert project_files(root) == initial_state
+
+
+def test_readers_observe_valid_baselines_during_updates(tmp_path):
+    root = prepare(tmp_path)
+    first, second = (take(root)["id"] for _ in range(2))
+    payload(root, "baseline", "set", first)
+    code = (
+        "from pathlib import Path; import sys; from drift.baseline import set_baseline; "
+        "root=Path(sys.argv[1]); [set_baseline(root, snapshot) for snapshot in sys.argv[2:] * 10]"
+    )
+    deadline = monotonic() + 15
+    with subprocess.Popen(
+        [sys.executable, "-c", code, str(root), second, first]
+    ) as writer:
+        while writer.poll() is None and monotonic() < deadline:
+            assert storage.read_metadata(root).baseline_id in {first, second}
+            sleep(0.002)
+        assert writer.wait(timeout=1) == 0
+    assert storage.read_metadata(root).baseline_id == first

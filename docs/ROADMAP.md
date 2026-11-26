@@ -112,11 +112,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
 
 ### Phase 5. Baseline and verification
 
-- [ ] **T-014 · Set a known-working baseline** · P0
+- [x] **T-014 · Set a known-working baseline** · P0
   - **Dependencies** `T-008`, `T-011`
   - **Requirements** `FR-010`, `FR-011`, `NFR-004`
   - **Deliverable** `baseline set` with atomic metadata publication.
   - **Complete when** Valid references set the pointer, failed writes preserve readable metadata, and concurrent readers and writers observe valid pointers.
+  - **Verified** Ruff, Mypy, and 136 tests passed on macOS with Python 3.12. Tests exercised partial baselines, no-op repeats, failed replacement, and concurrent pointer reads.
 - [ ] **T-015 · Verify the live environment** · P0
   - **Dependencies** `T-013`, `T-014`
   - **Requirements** `FR-010`, `FR-011`, `NFR-007`

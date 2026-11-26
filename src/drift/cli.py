@@ -7,6 +7,7 @@ from typing import Annotated, cast
 
 import typer
 
+from drift.baseline import set_baseline
 from drift.live_comparison import compare_live
 from drift.models import Snapshot, is_snapshot_reference, valid_message
 from drift.output import Report, emit, literal
@@ -15,6 +16,8 @@ from drift.snapshots import capture_snapshot, latest_snapshot, list_history, sum
 from drift.storage import resolve_snapshot
 
 app = typer.Typer(name="drift", add_completion=False)
+baseline = typer.Typer(name="baseline", add_completion=False)
+app.add_typer(baseline)
 JsonOption = Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")]
 
 
@@ -172,3 +175,25 @@ def diff(
         return compare_live(root, config, reference)
 
     emit("diff", as_json, run)
+
+
+@baseline.callback(invoke_without_command=True)
+def _baseline(ctx: typer.Context) -> None:
+    """Manage the known-working baseline."""
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+
+
+@baseline.command("set")
+def baseline_set(
+    ctx: typer.Context, snapshot: str, as_json: JsonOption = False
+) -> None:
+    """Make a saved snapshot the baseline."""
+    _validate_reference(snapshot)
+
+    def run() -> Report:
+        root, _ = initialized_project(cast(Path | None, ctx.obj))
+        snapshot_id = set_baseline(root, snapshot)
+        return Report({"baseline_id": snapshot_id}, f"Baseline set to {snapshot_id}")
+
+    emit("baseline set", as_json, run)
