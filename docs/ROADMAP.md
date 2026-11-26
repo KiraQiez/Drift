@@ -133,11 +133,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** Integration coverage from initialization through verification.
   - **Complete when** Each leaf command and result shape is checked with isolated projects and controlled probe inputs.
   - **Verified** Ruff, Mypy, and 140 tests passed on macOS with Python 3.12. The installed console test exercised all seven commands from a nested directory, checked the documented JSON contracts and exit codes, and verified sanitized usage errors.
-- [ ] **T-017 · Run locked cross-platform CI** · P1
+- [x] **T-017 · Run locked cross-platform CI** · P1
   - **Dependencies** `T-001`, `T-016`
   - **Requirements** `NFR-005`, `NFR-006`
   - **Deliverable** The GitHub Actions quality matrix.
   - **Complete when** The minimum and current supported Python versions pass on Linux, macOS, and Windows, with capability-specific cases documented.
+  - **Verified** All six hosted jobs passed locked setup, Ruff, Mypy, pytest, and package builds on Linux, macOS, and Windows with Python 3.12 and 3.15. Native Windows checks confirmed the baseline sharing retries. [Quality run](https://github.com/KiraQiez/Drift/actions/runs/45788474178)
 - [ ] **T-018 · Complete the privacy, filesystem, and latency review** · P0
   - **Dependencies** `T-006`, `T-007`, `T-016`, `T-017`
   - **Requirements** `NFR-001`, `NFR-002`, `NFR-003`, `NFR-004`, `NFR-005`, `NFR-008`
