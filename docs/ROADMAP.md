@@ -82,11 +82,12 @@ Public release depends on a distinct distribution name and maintainer-controlled
   - **Deliverable** The `init` command and state bootstrap.
   - **Complete when** Repeated and concurrent calls preserve existing bytes, partial setup can be retried, and local state is ignored by default.
   - **Verified** Ruff, Mypy, and 122 tests passed on macOS with Python 3.12. CLI fixtures verified repeat and partial initialization, concurrent bootstrap, preservation of existing files, and Git exclusions.
-- [ ] **T-010 · Capture snapshots** · P0
+- [x] **T-010 · Capture snapshots** · P0
   - **Dependencies** `T-004`, `T-005`, `T-006`, `T-007`, `T-008`, `T-009`
   - **Requirements** `FR-007`, `FR-011`, `NFR-001`, `NFR-004`
   - **Deliverable** Capture orchestration and the `snapshot` command.
   - **Complete when** A normal or partial capture writes exactly one immutable record and parallel invocations produce separate valid IDs.
+  - **Verified** Ruff, Mypy, and 125 tests passed on macOS with Python 3.12. Integration tests verified partial results, literal messages, UUID collision retry, and separate records from parallel invocations.
 - [ ] **T-011 · List and inspect history** · P0
   - **Dependencies** `T-008`, `T-010`
   - **Requirements** `FR-008`, `FR-011`, `NFR-004`, `NFR-007`

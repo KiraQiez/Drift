@@ -6,8 +6,10 @@ from typing import Annotated, cast
 
 import typer
 
-from drift.output import Report, emit
-from drift.project import initialize
+from drift.models import valid_message
+from drift.output import Report, emit, literal
+from drift.project import initialize, initialized_project
+from drift.snapshots import capture_snapshot, summary
 
 app = typer.Typer(name="drift", add_completion=False)
 JsonOption = Annotated[bool, typer.Option("--json", help="Emit machine-readable JSON.")]
@@ -47,3 +49,32 @@ def init(ctx: typer.Context, as_json: JsonOption = False) -> None:
         )
 
     emit("init", as_json, run)
+
+
+@app.command()
+def snapshot(
+    ctx: typer.Context,
+    message: Annotated[
+        str | None, typer.Option("--message", "-m", help="Label this snapshot.")
+    ] = None,
+    as_json: JsonOption = False,
+) -> None:
+    """Capture the current environment."""
+    if message is not None and not valid_message(message):
+        raise typer.BadParameter(
+            "Use 1–256 characters without control characters.", param_hint="--message"
+        )
+
+    def run() -> Report:
+        root, config = initialized_project(cast(Path | None, ctx.obj))
+        saved = capture_snapshot(root, config, message)
+        note = f" · {literal(saved.message)}" if saved.message is not None else ""
+        statuses = ", ".join(
+            f"{name} {result.status}" for name, result in saved.collectors.items()
+        )
+        return Report(
+            {"snapshot": summary(saved)},
+            f"Saved snapshot {saved.id} · {saved.created_at}{note}\n{statuses}",
+        )
+
+    emit("snapshot", as_json, run)
