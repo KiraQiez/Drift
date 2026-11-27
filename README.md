@@ -70,9 +70,9 @@ For `drift verify`, exit code **0** means a match, **3** means a confirmed chang
 
 ## See it work
 
-[![Watch the Drift demo showing a detected Python runtime change](docs/assets/drift-demo-thumbnail.jpg)](docs/assets/drift-demo.mp4)
+[![Watch the Drift demo showing a detected Python runtime change](docs/assets/drift-demo-thumbnail.jpg)](https://www.youtube.com/watch?v=73PWFNLNR_Q)
 
-[Watch the 33-second demo](docs/assets/drift-demo.mp4)to see Drift save a baseline and detect a Python version change.
+[Watch the 33-second demo](https://www.youtube.com/watch?v=73PWFNLNR_Q) to see Drift save a baseline and detect a Python version change.
 
 Here’s what Drift reports after a line changes in `requirements.txt`. Use `drift diff --details` for full dependency hashes and Git context.
 
